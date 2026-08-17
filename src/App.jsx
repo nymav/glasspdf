@@ -14,7 +14,7 @@ import FileList from './components/FileList'
 import PageOrganizer from './components/PageOrganizer'
 import MergeSummary from './components/MergeSummary'
 import PdfPreviewModal from './components/PdfPreviewModal'
-import StatusBar from './components/StatusBar'
+import StatusBar from './components/StatusBar.jsx'
 
 import {
   ensurePdfExtension,
