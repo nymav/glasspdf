@@ -77,6 +77,7 @@ export const startPdfPageRender =
     targetWidth,
 
     additionalRotation = 0,
+  isCancelled = () => false,
   }) => {
     if (!canvas) {
       throw new Error(
@@ -94,6 +95,8 @@ export const startPdfPageRender =
       await pdf.getPage(
         pageNumber,
       )
+
+    if (isCancelled()) throw new DOMException('Cancelled', 'AbortError')
 
     const sourceRotation =
       Number(

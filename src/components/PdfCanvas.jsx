@@ -56,7 +56,7 @@ function PdfCanvas({
       return undefined
     }
 
-    const observer = new IntersectionObserver(([entry]) => setShouldRender(entry.isIntersecting), { rootMargin: '0px' })
+    const observer = new IntersectionObserver(([entry]) => { setResult(null); setShouldRender(entry.isIntersecting) }, { rootMargin: '0px' })
 
     observer.observe(element)
 
@@ -82,6 +82,7 @@ function PdfCanvas({
             await startPdfPageRender({
               fileId,
               fileUrl,
+              isCancelled: () => cancelled,
 
               pageNumber,
 

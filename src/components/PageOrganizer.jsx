@@ -20,6 +20,7 @@ import {
 } from 'react-dom'
 
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -39,6 +40,7 @@ import Toolbar from './Toolbar'
 
 function PageOrganizer({
   pages,
+  revealPage,
   filesById,
 
   onReorderPages,
@@ -79,10 +81,30 @@ function PageOrganizer({
   const [dragPreview, setDragPreview] = useState(null)
   const scrollRef = useRef(null)
   const BATCH_SIZE = 120
-  const [batch, setBatch] = useState(0)
+  const [batchState, setBatchState] = useState({ number: 0, revealAt: null })
+  let batch = batchState.number
+  if (revealPage && revealPage.at !== batchState.revealAt) {
+    const index = pages.findIndex(page => page.id === revealPage.id)
+    batch = Math.max(0, Math.floor(index / BATCH_SIZE))
+    setBatchState({ number: batch, revealAt: revealPage.at })
+  }
+  const setBatch = number => setBatchState(previous => ({ ...previous, number }))
   const currentBatch = Math.min(batch, Math.max(0, Math.ceil(pages.length / BATCH_SIZE) - 1))
   const batchStart = currentBatch * BATCH_SIZE
   const visiblePages = pages.slice(batchStart, batchStart + BATCH_SIZE)
+  useEffect(() => {
+    if (!revealPage) return
+    const index = pages.findIndex(page => page.id === revealPage.id)
+    if (index < 0) return
+    const targetBatch = Math.floor(index / BATCH_SIZE)
+    if (currentBatch !== targetBatch) return
+    const frame = requestAnimationFrame(() => {
+      const card = scrollRef.current?.querySelector(`[data-page-id="${revealPage.id}"]`)
+      card?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      card?.querySelector('.page-drag-surface')?.focus({ preventScroll: true })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [revealPage, pages, currentBatch])
 
   const sensors =
     useSensors(
@@ -174,7 +196,7 @@ function PageOrganizer({
           </h2>
 
           <p>
-            Drag anywhere on a page. Keyboard: focus the preview, then Space and arrows.
+            Drag to reorder · Select pages for actions
           </p>
 
         </div>

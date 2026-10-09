@@ -105,7 +105,7 @@ import {
                   {file.name}
                 </p>
   
-                <p className="mt-[2px] text-[10px] text-slate-500">
+                <p className="mt-[2px] text-[12px] text-slate-500">
                   {file.error
                     ? file.error
                     : `${file.pageCount} page${
@@ -209,7 +209,7 @@ import {
             {!file.error ? (
               <div className="mt-2 flex items-center gap-2">
   
-                <label className="inline-flex cursor-pointer items-center gap-1.5 text-[10px] text-slate-500">
+                <label className="inline-flex cursor-pointer items-center gap-1.5 text-[12px] text-slate-500">
   
                   <input
                     type="checkbox"
@@ -227,7 +227,7 @@ import {
                     className="h-3.5 w-3.5 accent-[#007aff]"
                   />
   
-                  In final PDF
+                  In export
   
                 </label>
   
@@ -240,7 +240,7 @@ import {
                     )
                   }
   
-                  className="ml-auto text-[10px] font-medium text-[#007aff] hover:underline"
+                  className="ml-auto text-[12px] font-medium text-[#007aff] hover:underline"
                 >
                   Preview
                 </button>
@@ -256,7 +256,7 @@ import {
                   )
                 }
   
-                className="mt-2 text-[10px] font-medium text-rose-600"
+                className="mt-2 text-[12px] font-medium text-rose-600"
               >
                 Remove
               </button>

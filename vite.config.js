@@ -1,9 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { createHash } from 'node:crypto'
 
 export default defineConfig(({ mode }) => ({
+  define: { 'import.meta.env.APP_VERSION': JSON.stringify(JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version) },
   base: mode === 'desktop' ? '/' : '/glasspdf/',
   plugins: [react(), tailwindcss(), {
     name: 'glasspdf-offline',

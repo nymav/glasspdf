@@ -33,3 +33,15 @@ The packaged Mac ARM64 desktop edition starts from its bundled protocol, imports
 The full preview surface is the accessible drag target; the small handle is removed. The drag overlay captures the visible raster and preserves the preview's width and height instead of collapsing to a text tile. Action buttons remain separate from the drag target, and the temporary drag snapshot is released on drop/cancel.
 
 Chrome, Firefox and WebKit tests pass for dragging from the preview center, preserved overlay dimensions, page order, independent selection/rotation buttons and keyboard movement. Touch tests pass for hold-and-drag reordering and ordinary swipe scrolling without starting a drag. No page errors observed.
+
+## 0.4.0 — workspace design review (2026-10-09)
+
+- One upload empty state; compact, dismissible Help & app menu; platform-specific header shortcuts and visible version.
+- Visual export review with lazy thumbnails, output positions, and return-to-page focus across 120-page batches.
+- Mobile document disclosure, two-column page layout, no nested page scrolling, and persistent review/download action with correct output count.
+- Automated Chromium, Firefox and WebKit checks: export count/rotation, keyboard reorder and dialog focus, 320/390/768/1440px widths, no horizontal overflow, zero review axe findings.
+- Mobile touch layout and completed-export workspace: zero axe findings after toast transitions settle; visible thumbnails redraw after scrolling. Success/error/excluded-state text contrast corrected.
+- 350-page workspace: 120 mounted page cards, eight active rasters initially, offscreen canvases released, cross-batch thumbnail return and two-page extraction passed; zero axe findings and page errors.
+- Browser offline checks passed in Chromium/Firefox; WebKit reload and export passed with the app server stopped.
+- Desktop source build: sample export/preview passed, renderer Node access absent, external network blocked and no HTTP requests observed. Windows/Linux binaries are CI-built, not physically runtime-tested here.
+- These checks are not a WCAG certification or a substitute for observed first-time-user testing.

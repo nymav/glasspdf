@@ -8,6 +8,7 @@ import {
 
 function MergeSummary({
   downloadRequested,
+  outputStale,
   outputPageCount,
   selectedCount,
   onExtract,
@@ -33,13 +34,6 @@ function MergeSummary({
           file,
         ],
       ),
-    )
-
-  const activeFiles =
-    files.filter(
-      (file) =>
-        file.included &&
-        !file.error,
     )
 
   const finalPages =
@@ -68,6 +62,7 @@ function MergeSummary({
 
   return (
     <aside className="export-panel">
+      <div className="mobile-export-bar"><span>{outputUrl ? `${outputPageCount} pages ready` : `${finalPages.length} pages in export`}</span><button className="mac-primary-button" disabled={!finalPages.length || mergeState === 'merging'} onClick={outputUrl ? onDownload : onMerge}>{outputUrl ? 'Download PDF' : 'Review export'}</button></div>
 
       <div className="sidebar-heading">
 
@@ -92,7 +87,7 @@ function MergeSummary({
           <div>
 
             <strong>
-              {activeFiles.length}
+              {new Set(finalPages.map(page => page.fileId)).size}
             </strong>
 
             <span>
@@ -190,7 +185,7 @@ function MergeSummary({
               'merging'
           }
 
-          className="mac-primary-button w-full justify-center"
+          className={`${outputUrl ? 'mac-secondary-button' : 'mac-primary-button'} w-full justify-center`}
         >
 
           {mergeState ===
@@ -203,10 +198,11 @@ function MergeSummary({
           {mergeState ===
           'merging'
             ? 'Creating…'
-            : 'Review export'}
+            : outputUrl ? 'Create another export' : 'Review export'}
 
         </button>
 
+        {outputStale && <p role="status" className="text-xs leading-5 text-slate-600">Workspace changed. Review export to create an updated PDF.</p>}
         <button type="button" className="mac-secondary-button w-full justify-center" disabled={!selectedCount || mergeState === 'merging'} onClick={onExtract}>Extract selected ({selectedCount || 0})</button>
 
         {outputUrl ? (
@@ -216,7 +212,7 @@ function MergeSummary({
 
               <CheckCircle2 className="h-4 w-4" />
 
-              Verified PDF · {outputPageCount} {outputPageCount === 1 ? 'page' : 'pages'}
+              PDF ready · {outputPageCount} {outputPageCount === 1 ? 'page' : 'pages'}
 
             </div>
 
@@ -249,39 +245,17 @@ function MergeSummary({
           </div>
         ) : null}
 
+        {outputUrl && <p className="text-xs leading-5 text-slate-600">Page count, order and rotation checked. Preview before sharing.</p>}
         {outputUrl && <p className="text-xs leading-5 text-slate-600">{downloadRequested ? 'Download requested. Check your downloads folder.' : 'Not downloaded yet. Download before closing or reloading.'}</p>}
-        <p className="text-xs leading-5 text-slate-600">Exports are new files. Your originals stay unchanged.</p>
+
         <div className="export-privacy">
 
           <div className="privacy-dot" />
 
-          Generated locally in your browser
+          {import.meta.env.MODE === 'desktop' ? 'Processed on your device' : 'Processed in your browser'}
 
         </div>
 
-        <div className="shortcut-card">
-
-          <p>
-            Keyboard
-          </p>
-
-          <span>
-            ⌘O Add files
-          </span>
-
-          <span>
-            ⌘Z Undo
-          </span>
-
-          <span>
-            Space Quick Look
-          </span>
-
-          <span>
-            ⌘E Export
-          </span>
-
-        </div>
 
       </div>
 

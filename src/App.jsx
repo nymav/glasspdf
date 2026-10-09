@@ -31,6 +31,8 @@ import WorkspaceGuide from './components/WorkspaceGuide'
 const HISTORY_LIMIT = 25
 
 function App() {
+  const [outputStale, setOutputStale] = useState(false)
+  const [revealPage, setRevealPage] = useState(null)
   const [downloadRequested, setDownloadRequested] = useState(false)
   const [unsaved, setUnsaved] = useState(false)
   const [outputPageCount, setOutputPageCount] = useState(0)
@@ -169,6 +171,7 @@ function App() {
 
   const invalidateOutput = () => {
     if (outputUrlRef.current) {
+      setOutputStale(true)
       URL.revokeObjectURL(
         outputUrlRef.current,
       )
@@ -1029,6 +1032,7 @@ function App() {
     setPreview(null)
     setReview(null)
     setUnsaved(false)
+    setOutputStale(false)
     setDownloadRequested(false)
     const message = 'Workspace cleared. Documents, previews and undo history were released from the app. This does not securely erase device memory or delete originals and downloads.'
     announce(message); toast.success(message)
@@ -1060,8 +1064,8 @@ function App() {
       })
       if (token.cancelled || workspaceVersionRef.current !== snapshot.version) throw new DOMException('Cancelled', 'AbortError')
       const mergedUrl = toObjectUrl(mergedBytes, 'application/pdf')
-      outputUrlRef.current = mergedUrl; setOutputUrl(mergedUrl); setOutputPageCount(snapshot.pages.length); setMergeState('done'); setDownloadRequested(false); setUnsaved(true)
-      announce(`Verified PDF ready. ${snapshot.pages.length} pages checked in output order.`); toast.success('PDF verified and ready')
+      outputUrlRef.current = mergedUrl; setOutputUrl(mergedUrl); setOutputPageCount(snapshot.pages.length); setMergeState('done'); setOutputStale(false); setDownloadRequested(false); setUnsaved(true)
+      announce(`PDF ready. ${snapshot.pages.length} pages checked in output order.`); toast.success('PDF ready — page order checked')
     } catch (error) {
       setMergeState('idle')
       if (error.name === 'AbortError' || token.cancelled) { toast.message('Export cancelled. Your documents were kept.'); announce('Export cancelled.') }
@@ -1417,40 +1421,7 @@ function App() {
                 }
               />
 
-              {files.length ===
-              0 ? (
-                <section className="empty-workspace">
-
-                  <div className="empty-icon">
-                    +
-                  </div>
-
-                  <h2>
-                    Start a new PDF
-                  </h2>
-
-                  <p>
-                    Add documents, arrange pages and export one final PDF.
-                  </p>
-
-                  <button
-                    type="button"
-
-                    onClick={
-                      chooseFiles
-                    }
-
-                    className="mac-primary-button mt-5"
-                  >
-                    Choose PDFs
-                  </button>
-
-                  <p className="mt-4 text-[11px] text-slate-500">
-                    ⌘O to add files · Processing stays local
-                  </p>
-
-                </section>
-              ) : (
+              {files.length > 0 && (
                 <section className="workspace-grid">
 
                   <FileList
@@ -1484,6 +1455,7 @@ function App() {
                       pages
                     }
 
+                    revealPage={revealPage}
                     filesById={
                       filesById
                     }
@@ -1562,6 +1534,7 @@ function App() {
                   />
 
                   <MergeSummary
+                    outputStale={outputStale}
                     downloadRequested={downloadRequested}
                     outputPageCount={outputPageCount}
                     selectedCount={markedPages.filter(page => filesById[page.fileId]?.source).length}
@@ -1632,17 +1605,17 @@ function App() {
         </div>
 
         <aside aria-label="Document privacy" className="mx-auto max-w-3xl px-6 py-5 text-center text-xs leading-6 text-slate-600">
-          <p>PDFs are processed locally in your browser. GlassPDF does not upload or store your documents on a server. Your original files stay unchanged; exports are new PDFs.</p>
+          <p>Your PDFs stay on your device. Processing is local; GlassPDF does not upload your documents.</p>
           <details className="mt-1">
             <summary className="cursor-pointer underline underline-offset-4">Privacy details</summary>
-            <p className="mt-2">Documents are held temporarily in browser memory while you work. Downloaded PDFs are saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files and the public sample, never your documents. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
+            <p className="mt-2">Documents are held temporarily in memory while you work. Your original files stay unchanged; exports are new PDFs saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files and the public sample, never your documents. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
           </details>
         </aside>
         <footer className="px-6 pb-6 text-center text-xs text-slate-600">A product of <span className="font-medium text-slate-800">Teyrin</span></footer>
       </main>
 
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement} {markedPages.length} pages selected. {includedPages.length} pages included in output.</p>
-      {review && <ExportReview pages={review.pages} mode={review.mode} filename={outputName} setFilename={setOutputName} onClose={() => setReview(null)} onConfirm={mergeIncludedPages} />}
+      {review && <ExportReview onEditPage={page => { setReview(null); setRevealPage({ id: page.id, at: Date.now() }) }} pages={review.pages} mode={review.mode} filename={outputName} setFilename={setOutputName} onClose={() => setReview(null)} onConfirm={mergeIncludedPages} />}
       {previewFile ? (
         <PdfPreviewModal
           key={`${previewFile.id}-${preview.pageNumber}`}

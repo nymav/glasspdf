@@ -256,7 +256,7 @@ function PageCard({
       <div className="mt-2 min-w-0 px-0.5">
 
         <p
-          className="truncate text-[11px] font-medium text-slate-700"
+          className="truncate text-[13px] font-medium text-slate-700"
 
           title={
             page.fileName
@@ -267,7 +267,7 @@ function PageCard({
 
         <div className="mt-[2px] flex items-center justify-between gap-2">
 
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[12px] text-slate-500">
             p.{page.pageNumber}
 
             {sourcePageCount
@@ -280,7 +280,7 @@ function PageCard({
           </p>
 
           <label
-            className="inline-flex cursor-pointer items-center gap-1 text-[9px] text-slate-500"
+            className="inline-flex cursor-pointer items-center gap-1 text-[12px] text-slate-500"
 
             title="Include in final PDF"
           >
@@ -306,7 +306,7 @@ function PageCard({
               className="h-3 w-3 accent-[#007aff]"
             />
 
-            Final
+            In export
 
           </label>
 

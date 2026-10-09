@@ -1,5 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 export default function WorkspaceGuide({ onSample, busy }) {
+  const helpRef = useRef(null)
+  useEffect(() => {
+    const outside = event => { if (helpRef.current?.open && !helpRef.current.contains(event.target)) helpRef.current.open = false }
+    const escape = event => { if (event.key === 'Escape' && helpRef.current?.open) { helpRef.current.open = false; helpRef.current.querySelector('summary').focus() } }
+    document.addEventListener('pointerdown', outside)
+    document.addEventListener('focusin', outside)
+    document.addEventListener('keydown', escape)
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('focusin', outside); document.removeEventListener('keydown', escape) }
+  }, [])
   const [offlineReady, setOfflineReady] = useState(false)
   const [online, setOnline] = useState(navigator.onLine)
   const [installPrompt, setInstallPrompt] = useState(null)
@@ -27,10 +36,10 @@ export default function WorkspaceGuide({ onSample, busy }) {
       <button className="mac-secondary-button" onClick={onSample} disabled={busy}>Try a sample PDF</button>
       <span role="status">{desktop ? 'Desktop edition · offline by default' : offlineReady ? (online ? 'Ready for offline use' : 'Offline · ready to work') : 'Offline setup requires one complete online visit'}</span>
       {installPrompt && <button className="mac-secondary-button" onClick={async () => { await installPrompt.prompt(); setInstallPrompt(null) }}>Install app</button>}
-    </div>
+    <details ref={helpRef} className="help-menu"><summary>Help & app</summary><div className="help-content">
     <details><summary>Help & shortcuts</summary>
       <ul><li>Add PDFs, then drag anywhere on a page preview, or focus the preview and press Space, arrow keys, then Space to place. Escape cancels a move. On touch screens, hold a preview briefly to move it; swipe normally to scroll.</li>
-      <li>Select page buttons to mark pages. “Final” controls inclusion in the full export. “Extract selected” saves marked pages separately without changing the workspace.</li>
+      <li>Select page buttons to mark pages. “In export” controls inclusion in the full export. “Extract selected” saves marked pages separately without changing the workspace.</li>
       <li>Range accepts 1–4, 7, 10–12 (use a hyphen). Choose Select to extract that range, or Include/Exclude to change the full export.</li>
       <li>Ctrl/⌘ O: add files · Ctrl/⌘ Z: undo · Ctrl/⌘ Shift Z: redo · Ctrl/⌘ A: select pages · Ctrl/⌘ E: review export · Space: preview one selected page · Delete: remove selected pages.</li>
       <li>Clear workspace releases documents, previews and undo history from the app, without promising secure erasure of device memory. Reloading closes your unsaved workspace; download your result first. Your original files are never overwritten.</li>
@@ -43,5 +52,7 @@ export default function WorkspaceGuide({ onSample, busy }) {
     {!desktop && <p><a href="https://github.com/nymav/glasspdf/releases" target="_blank" rel="noopener noreferrer">Download desktop edition ↗</a></p>}
     <a href="https://github.com/nymav/glasspdf/issues/new" target="_blank" rel="noopener noreferrer">Report a problem ↗</a>
     <p className="text-xs">Report a bug with the steps and browser you used. GitHub issues are public—use a dummy PDF if an example is needed.</p>
+    <p>GlassPDF v{import.meta.env.APP_VERSION}</p>
+    </div></details></div>
   </section>
 }

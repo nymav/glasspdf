@@ -27,7 +27,8 @@ createRoot(
 
       closeButton
 
-      position="top-right"
+      position="bottom-right"
+      toastOptions={{ duration: 3000, className: 'workspace-toast' }}
     />
 
   </StrictMode>,

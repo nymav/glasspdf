@@ -15,6 +15,7 @@ function FileList({
 
   onAddFiles,
 }) {
+  const [expanded, setExpanded] = useState(false)
   const [
     draggingIndex,
     setDraggingIndex,
@@ -54,7 +55,7 @@ function FileList({
   }
 
   return (
-    <aside className="sidebar-panel">
+    <aside className="sidebar-panel" data-expanded={expanded}>
 
       <div className="sidebar-heading">
 
@@ -76,7 +77,8 @@ function FileList({
 
       </div>
 
-      <div className="document-list">
+      <button className="mobile-documents-toggle mac-secondary-button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? 'Hide documents' : 'Show documents'} ({files.length})</button>
+      <div className="document-list" id="document-list">
 
         {files.map(
           (

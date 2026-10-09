@@ -2674,3 +2674,81 @@ dialog.quicklook-backdrop::backdrop { background: #0f172a80; }
 .page-full-drag-overlay .page-paper { display: flex; align-items: center; justify-content: center; border-color: #007aff; background: white; }
 .drag-page-image { width: 100%; height: 100%; object-fit: contain; }
 .drag-page-placeholder { display: grid; place-items: center; height: 100%; width: 100%; color: #475569; }
+
+/* Focused workspace: one task, readable controls, restrained surfaces. */
+body { background: #edf1f5; }
+.mac-window { border: 1px solid #dce3eb; border-radius: 20px; background: #f4f7fa; box-shadow: 0 12px 40px #16324f0d; }
+.mac-titlebar { background: #fff; backdrop-filter: none; }
+.workspace-guide { padding: 10px 16px; font-size: 13px; background: #f8fafc; }
+.guide-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.guide-actions > span { margin-right: auto; font-size: 12px; }
+.help-menu { position: relative; margin: 0 !important; }
+.help-menu > summary { padding: 8px 12px; border: 1px solid #dbe3ec; border-radius: 9px; background: #fff; }
+.help-content { position: absolute; z-index: 40; right: 0; top: 44px; width: min(460px, calc(100vw - 48px)); max-height: 65dvh; overflow: auto; background: #fff; padding: 18px; border: 1px solid #dbe3ec; border-radius: 12px; box-shadow: 0 12px 36px #14243c26; }
+.help-content > * + * { margin-top: 12px; }
+.sidebar-panel, .export-panel, .page-workspace { background: #fff; border-color: #dce3eb; box-shadow: none; }
+.workspace-grid { gap: 14px; min-height: calc(100dvh - 240px); }
+.sidebar-heading h2, .workspace-heading h2 { font-size: 15px; }
+.sidebar-heading p, .workspace-heading p, .mac-label { font-size: 12px; }
+.page-toolbar-button, .mac-secondary-button, .mac-primary-button, .mac-input, .view-button { font-size: 13px; min-height: 36px; }
+.mac-title-button { min-width: 36px; min-height: 36px; }
+.page-select-button { width: 30px; height: 30px; border: 2px solid #64748b; background: #fff; opacity: 1; }
+.page-select-button-active { background: #135dc9; border-color: #135dc9; color: #fff; }
+.page-card-selected .page-paper { outline: 3px solid #135dc9; outline-offset: 3px; }
+.page-card-excluded { opacity: .65; }
+.page-hover-toolbar button { min-width: 36px; min-height: 36px; }
+.mac-download-button { min-height: 42px; }
+.export-review-dialog { width: min(820px, calc(100vw - 24px)); }
+.review-sequence { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-height: 45dvh; }
+.review-sequence li { display: block; padding: 0; min-width: 0; }
+.review-page { display: flex; flex-direction: column; align-items: stretch; width: 100%; text-align: left; gap: 5px; border: 1px solid #dbe3ec; border-radius: 10px; padding: 10px; background: #f8fafc; }
+.review-page:hover { border-color: #135dc9; }
+.review-thumbnail { height: 170px; border: 1px solid #e2e8f0; margin-bottom: 6px; }
+.review-page > span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-edit { color: #135dc9; }
+.export-limitations { padding: 8px 0; }
+.export-limitations summary { cursor: pointer; }
+.mobile-export-bar { display: none; }
+.workspace-toast { font-size: 13px; }
+@media (hover: none) { .page-hover-toolbar { opacity: 1; transform: none; } }
+@media (max-width: 760px) {
+  main { padding-bottom: 92px !important; }
+  .guide-actions { gap: 8px; }
+  .guide-actions > span { flex-basis: 100%; order: 3; }
+  .help-menu { margin-left: auto !important; }
+  .workspace-grid { min-height: 0; }
+  .sidebar-panel .document-list { display: none; }
+  .sidebar-panel[data-expanded="true"] .document-list { display: block; }
+  .page-scroll-area { max-height: none; overflow: visible; }
+  .page-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .page-paper .pdf-canvas canvas { max-width: 100%; height: auto; }
+  .page-hover-toolbar { position: static; flex-wrap: wrap; margin-top: 8px; background: #fff; opacity: 1; transform: none; }
+  .page-hover-toolbar button { min-width: 32px; min-height: 36px; }
+  .mobile-export-bar { display: flex; position: fixed; z-index: 50; bottom: 0; left: 0; right: 0; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #dce3eb; box-shadow: 0 -4px 16px #14243c0d; font-size: 13px; }
+  .mobile-export-bar .mac-primary-button { min-height: 44px; }
+  .help-content { right: 0; }
+  [data-sonner-toaster] { bottom: 90px !important; }
+}
+
+.mobile-documents-toggle { display: none; }
+@media (max-width: 760px) { .mobile-documents-toggle { display: flex; margin: 12px 16px; } }
+
+@media (max-width: 480px) {
+  .mac-titlebar { gap: 8px; padding: 10px 12px; }
+  .mac-titlebar .local-pill { display: none; }
+  .mac-titlebar img { width: 28px; height: 28px; }
+  .mac-titlebar h1 { font-size: 15px; }
+  .mac-titlebar p { font-size: 11px; }
+  .mac-title-button { min-width: 32px; padding: 6px; }
+  .page-hover-toolbar { display: flex; justify-content: center; }
+}
+.sidebar-add-button, .review-edit { color: #135dc9; }
+.export-summary span { color: #52647a; }
+[data-sonner-toast][data-type="success"] { color: #14532d !important; background: #f0fdf4 !important; border-color: #bbf7d0 !important; }
+.mac-count-blue { color: #135dc9; font-size: 12px; }
+.document-row-disabled, .page-card-excluded { opacity: 1; }
+.page-card-excluded .page-paper { filter: grayscale(1); border: 2px dashed #64748b; }
+.document-row-disabled { background: #f1f5f9; }
+.text-\[\#007aff\] { color: #135dc9; }
+.document-row-disabled .text-slate-500 { color: #475569; }
+.document-row-disabled .text-rose-600 { color: #9f1239; }

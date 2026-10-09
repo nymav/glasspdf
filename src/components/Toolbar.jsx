@@ -101,6 +101,8 @@ function Toolbar({
             ([value, label]) => (
               <button
                 key={value}
+                aria-label={`${value} page previews`}
+                aria-pressed={viewSize === value}
 
                 type="button"
 

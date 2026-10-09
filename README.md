@@ -2,11 +2,11 @@
 
 A product of **Teyrin**.
 
-A polished, privacy-first PDF workspace built with React + Vite.
+A private PDF workspace for combining, arranging and extracting pages on your device.
 
 GlassPDF lets you combine, preview, rearrange, rotate, duplicate, include, exclude, and export PDF pages directly in your browser.
 
-The interface is inspired by macOS/iOS-style glass surfaces while keeping PDF processing local and lightweight.
+Review thumbnails in output order before exporting. The mobile workspace includes a persistent review/download action; Help & app contains guidance, installation and version information.
 
 ## Features
 

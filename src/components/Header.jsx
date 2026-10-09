@@ -20,28 +20,18 @@ function Header({
   onRedo,
   onClear,
 }) {
+  const modifier = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl+'
   return (
     <header className="mac-titlebar">
 
       <div className="flex min-w-0 items-center gap-3">
-
-        <div
-          className="hidden items-center gap-[7px] sm:flex"
-          aria-hidden="true"
-        >
-          <span className="traffic-light bg-[#ff5f57]" />
-          <span className="traffic-light bg-[#febc2e]" />
-          <span className="traffic-light bg-[#28c840]" />
-        </div>
-
-        <div className="hidden h-6 w-px bg-slate-900/10 sm:block" />
 
         <img src={`${import.meta.env.BASE_URL}favicon.svg`} width="36" height="36" alt="" className="shrink-0" />
         <div className="min-w-0">
 
           <div className="flex items-center gap-2">
 
-            <h1 className="truncate text-[14px] font-semibold tracking-[-0.01em] text-slate-900">
+            <h1 className="truncate text-[16px] font-semibold tracking-[-0.01em] text-slate-900">
               GlassPDF
             </h1>
 
@@ -52,7 +42,7 @@ function Header({
 
           </div>
 
-          <p className="mt-[1px] text-[10px] text-slate-500">
+          <p className="mt-[1px] text-[12px] text-slate-500">
             {fileCount > 0
               ? `${fileCount} document${
                   fileCount === 1
@@ -81,7 +71,7 @@ function Header({
           }
 
           className="mac-title-button"
-          title="Add PDFs (⌘O)"
+          title={`Add PDFs (${modifier}O)`}
         >
           <FilePlus2 className="h-4 w-4" />
 
@@ -102,7 +92,7 @@ function Header({
           }
 
           className="mac-title-button"
-          title="Undo (⌘Z)"
+          title={`Undo (${modifier}Z)`}
         >
           <RotateCcw className="h-4 w-4" />
         </button>
@@ -119,7 +109,7 @@ function Header({
           }
 
           className="mac-title-button"
-          title="Redo (⌘⇧Z)"
+          title={`Redo (${modifier}Shift+Z)`}
         >
           <Redo2 className="h-4 w-4" />
         </button>
