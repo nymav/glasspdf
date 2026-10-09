@@ -23,19 +23,20 @@ import {
   toObjectUrl,
 } from './lib/fileUtils'
 
-import {
-  mergePdfPages,
-  parsePdfFile,
-} from './lib/pdfUtils'
-
-import {
-  clearPdfPreviewCache,
-  removePdfFromPreviewCache,
-} from './lib/pdfPreviewUtils'
+import { runPdfJob, cancelPdfJob } from './lib/pdfJobs'
+import { clearPdfPreviewCache, removePdfFromPreviewCache } from './lib/pdfPreviewUtils'
+import ExportReview from './components/ExportReview'
+import WorkspaceGuide from './components/WorkspaceGuide'
 
 const HISTORY_LIMIT = 25
 
 function App() {
+  const [outputPageCount, setOutputPageCount] = useState(0)
+  const [operation, setOperation] = useState(null)
+  const [review, setReview] = useState(null)
+  const [announcement, setAnnouncement] = useState('')
+  const operationRef = useRef(null)
+  const announce = message => setAnnouncement(message)
   const [files, setFiles] = useState([])
   const [pages, setPages] = useState([])
 
@@ -83,16 +84,18 @@ function App() {
   }, [outputUrl])
 
   useEffect(() => {
+    const registry = sourceUrlRegistry.current
     return () => {
+      cancelPdfJob()
       clearPdfPreviewCache()
 
-      sourceUrlRegistry.current.forEach(
+      registry.forEach(
         (url) => {
           URL.revokeObjectURL(url)
         },
       )
 
-      sourceUrlRegistry.current.clear()
+      registry.clear()
 
       if (outputUrlRef.current) {
         URL.revokeObjectURL(
@@ -165,6 +168,7 @@ function App() {
     outputUrlRef.current = ''
 
     setOutputUrl('')
+    setOutputPageCount(0)
     setMergeState('idle')
   }
 
@@ -221,149 +225,64 @@ function App() {
   // FILE UPLOAD
   // =====================================================
 
-  const addFiles = async (
-    inputFiles,
-  ) => {
-    const pdfFiles =
-      Array.from(inputFiles).filter(
-        (file) =>
-          file.type ===
-            'application/pdf' ||
-          file.name
-            .toLowerCase()
-            .endsWith('.pdf'),
-      )
+  const cancelOperation = () => {
+    if (operationRef.current) operationRef.current.cancelled = true
+    cancelPdfJob()
+    announce('Processing cancelled. Your existing workspace is unchanged.')
+  }
 
-    if (pdfFiles.length === 0) {
-      toast.error(
-        'Only PDF files are supported.',
-      )
-      return
-    }
-
+  const addFiles = async inputFiles => {
+    if (operationRef.current) return
+    const incoming = Array.from(inputFiles)
+    const supported = incoming.filter(file => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))
+    const rejected = incoming.length - supported.length
+    if (rejected) toast.error(`${rejected} unsupported file${rejected === 1 ? '' : 's'} skipped. Choose PDF documents; images and Office files are not supported.`)
+    if (!supported.length) return
+    const totalBytes = [...files, ...supported].reduce((sum, file) => sum + file.size, 0)
+    if ((supported.some(file => file.size > 25 * 1024 * 1024) || totalBytes > 100 * 1024 * 1024) && !window.confirm('Large PDF workspace: previews and export may use substantial device memory. Try smaller files if your browser is slow. Continue?')) return
+    const token = { cancelled: false }; operationRef.current = token
     setLoading(true)
-
-    const newFiles = []
-    const newPages = []
-
+    const newFiles = [], newPages = [], newUrls = []
+    let committed = false
     try {
-      for (const file of pdfFiles) {
+      for (const [index, file] of supported.entries()) {
+        if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
+        setOperation({ done: index, total: supported.length, label: `Reading document ${index + 1} of ${supported.length}` })
         const id = makeId()
-
         try {
-          const {
-            bytes,
-            pageCount,
-          } =
-            await parsePdfFile(file)
-
-          /*
-           * PDF.js gets the original browser File.
-           * pdf-lib keeps its Uint8Array separately.
-           */
-          const fileUrl =
-            URL.createObjectURL(file)
-
-          sourceUrlRegistry.current.add(
-            fileUrl,
-          )
-
-          newFiles.push({
-            id,
-
-            name: file.name,
-            size: file.size,
-
-            pageCount,
-
-            included: true,
-
-            bytes,
-            fileUrl,
-
-            error: null,
-          })
-
-          for (
-            let index = 0;
-            index < pageCount;
-            index += 1
-          ) {
-            newPages.push({
-              id: makeId(),
-
-              fileId: id,
-              fileName: file.name,
-
-              originalPageIndex:
-                index,
-
-              pageNumber:
-                index + 1,
-
-              included: true,
-              marked: false,
-
-              rotation: 0,
-
-              fileUrl,
-            })
-          }
+          const { bytes, pageCount } = await runPdfJob('parse', { file })
+          if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
+          const fileUrl = URL.createObjectURL(file); newUrls.push(fileUrl)
+          newFiles.push({ id, name: file.name, size: file.size, pageCount, included: true, bytes, fileUrl, error: null })
+          for (let index = 0; index < pageCount; index++) newPages.push({ id: makeId(), fileId: id, fileName: file.name, originalPageIndex: index, pageNumber: index + 1, included: true, marked: false, rotation: 0, fileUrl })
         } catch (error) {
-          newFiles.push({
-            id,
-
-            name: file.name,
-            size: file.size,
-
-            pageCount: 0,
-            included: false,
-
-            bytes: null,
-            fileUrl: '',
-
-            error:
-              error?.message ||
-              'Unable to read this PDF.',
-          })
-
-          toast.error(
-            `${file.name}: ${
-              error?.message ||
-              'Unable to read this PDF.'
-            }`,
-          )
+          if (error.name === 'AbortError' || token.cancelled) throw error
+          newFiles.push({ id, name: file.name, size: file.size, pageCount: 0, included: false, bytes: null, fileUrl: '', error: error.message })
+          toast.error(`${file.name}: ${error.message}`)
         }
       }
-
-      commitWorkspace(
-        [
-          ...files,
-          ...newFiles,
-        ],
-        [
-          ...pages,
-          ...newPages,
-        ],
-      )
-
-      const successful =
-        newFiles.filter(
-          (file) => !file.error,
-        ).length
-
-      if (successful > 0) {
-        toast.success(
-          `${successful} PDF${
-            successful === 1
-              ? ''
-              : 's'
-          } added`,
-        )
-      }
+      if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
+      newUrls.forEach(url => sourceUrlRegistry.current.add(url))
+      commitWorkspace([...files, ...newFiles], [...pages, ...newPages]); committed = true
+      const successful = newFiles.filter(file => !file.error).length
+      const message = `${successful} PDF${successful === 1 ? '' : 's'} added, ${newPages.length} pages ready.`
+      announce(message); if (successful) toast.success(message)
+    } catch (error) {
+      if (error.name === 'AbortError' || token.cancelled) toast.message('Import cancelled. Existing documents were kept.')
+      else toast.error(error.message || 'Unable to import PDFs.')
     } finally {
-      setLoading(false)
+      if (!committed) newUrls.forEach(url => URL.revokeObjectURL(url))
+      operationRef.current = null; setLoading(false); setOperation(null)
     }
+  }
+
+  const loadSample = async () => {
+    if (operationRef.current) return
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}sample.pdf`)
+      if (!response.ok) throw new Error('Sample unavailable. Check your connection and try again.')
+      await addFiles([new File([await response.blob()], 'GlassPDF-sample.pdf', { type: 'application/pdf' })])
+    } catch (error) { toast.error(error.message) }
   }
 
   const onInputChange =
@@ -906,6 +825,7 @@ function App() {
   }
 
   const applyPageRange = ({
+    mode,
     fileId,
     expression,
     included,
@@ -936,6 +856,12 @@ function App() {
       toast.error(
         result.error,
       )
+      return
+    }
+
+    if (mode === 'select') {
+      setPages(pages.map(page => ({ ...page, marked: page.fileId === fileId && result.pageNumbers.has(page.pageNumber) })))
+      announce(`${result.pageNumbers.size} pages selected for extraction.`)
       return
     }
 
@@ -1094,87 +1020,36 @@ function App() {
   // MERGE
   // =====================================================
 
-  const mergeIncludedPages =
-    async () => {
-      if (
-        includedPages.length === 0
-      ) {
-        toast.error(
-          'Include at least one page.',
-        )
-        return
-      }
+  const requestExport = (mode = 'all') => {
+    if (operationRef.current) return
+    const selected = mode === 'selected'
+      ? pages.filter(page => page.marked && filesById[page.fileId]?.bytes)
+      : includedPages
+    if (!selected.length) { toast.error(mode === 'selected' ? 'Select at least one page to extract.' : 'Include at least one page.'); return }
+    setReview({ pages: selected.map(page => ({ ...page })), mode, version: workspaceVersionRef.current })
+    if (mode === 'selected') setOutputName('extracted-pages.pdf')
+  }
 
-      const version =
-        workspaceVersionRef.current
-
-      try {
-        invalidateOutput()
-
-        setMergeState(
-          'merging',
-        )
-
-        const mergedBytes =
-          await mergePdfPages({
-            selectedPages:
-              includedPages,
-
-            files:
-              files.filter(
-                (file) =>
-                  file.included &&
-                  !file.error,
-              ),
-          })
-
-        if (
-          workspaceVersionRef.current !==
-          version
-        ) {
-          setMergeState(
-            'idle',
-          )
-
-          toast.message(
-            'Workspace changed. Create the PDF again.',
-          )
-
-          return
-        }
-
-        const mergedUrl =
-          toObjectUrl(
-            mergedBytes,
-            'application/pdf',
-          )
-
-        outputUrlRef.current =
-          mergedUrl
-
-        setOutputUrl(
-          mergedUrl,
-        )
-
-        setMergeState(
-          'done',
-        )
-
-        toast.success(
-          'PDF ready',
-        )
-      } catch (error) {
-        console.error(error)
-
-        setMergeState(
-          'idle',
-        )
-
-        toast.error(
-          'Unable to create PDF.',
-        )
-      }
-    }
+  const mergeIncludedPages = async () => {
+    if (!review || operationRef.current) return
+    const snapshot = review; setReview(null)
+    if (snapshot.version !== workspaceVersionRef.current) { toast.error('Workspace changed. Review the export again.'); return }
+    const token = { cancelled: false }; operationRef.current = token
+    invalidateOutput(); setMergeState('merging'); setOperation({ done: 0, total: snapshot.pages.length, label: 'Preparing export' })
+    try {
+      const mergedBytes = await runPdfJob('merge', { selectedPages: snapshot.pages, files: files.filter(file => !file.error) }, progress => {
+        setOperation(progress)
+      })
+      if (token.cancelled || workspaceVersionRef.current !== snapshot.version) throw new DOMException('Cancelled', 'AbortError')
+      const mergedUrl = toObjectUrl(mergedBytes, 'application/pdf')
+      outputUrlRef.current = mergedUrl; setOutputUrl(mergedUrl); setOutputPageCount(snapshot.pages.length); setMergeState('done')
+      announce(`PDF ready. ${snapshot.pages.length} pages exported.`); toast.success('PDF ready')
+    } catch (error) {
+      setMergeState('idle')
+      if (error.name === 'AbortError' || token.cancelled) { toast.message('Export cancelled. Your documents were kept.'); announce('Export cancelled.') }
+      else { toast.error(error.message || 'Unable to create PDF. Try fewer pages.'); announce('Export failed.') }
+    } finally { operationRef.current = null; setOperation(null) }
+  }
 
   const downloadMergedPdf =
     () => {
@@ -1305,6 +1180,8 @@ function App() {
           event.target,
         )
 
+      if (event.defaultPrevented || document.querySelector('dialog[open]') || operationRef.current || preview) return
+
       if (
         command &&
         event.key.toLowerCase() ===
@@ -1349,7 +1226,7 @@ function App() {
         if (editable) return
 
         event.preventDefault()
-        mergeIncludedPages()
+        requestExport()
         return
       }
 
@@ -1367,6 +1244,7 @@ function App() {
 
       if (
         event.code === 'Space' &&
+        !event.target.closest('button, a, summary') &&
         !editable &&
         markedPages.length === 1
       ) {
@@ -1420,6 +1298,7 @@ function App() {
 
         multiple
 
+        aria-label="Choose PDF documents"
         accept="application/pdf,.pdf"
 
         className="sr-only"
@@ -1436,6 +1315,7 @@ function App() {
           <div className="mac-window">
 
             <Header
+              busy={!!operation}
               fileCount={
                 validFileCount
               }
@@ -1473,6 +1353,13 @@ function App() {
               }
             />
 
+            <WorkspaceGuide onSample={loadSample} busy={!!operation} />
+            {operation && <section className="operation-panel" aria-label="PDF processing progress">
+              <p role="status">{operation.label} · {operation.done} / {operation.total}</p>
+              <progress value={operation.done} max={Math.max(1, operation.total)} aria-label={operation.label} />
+              <button className="mac-secondary-button" onClick={cancelOperation}>Cancel processing</button>
+            </section>}
+            <fieldset disabled={!!operation} className="workspace-fieldset">
             <div className="px-3 pb-3">
 
               <UploadDropzone
@@ -1658,6 +1545,9 @@ function App() {
                   />
 
                   <MergeSummary
+                    outputPageCount={outputPageCount}
+                    selectedCount={markedPages.filter(page => filesById[page.fileId]?.bytes).length}
+                    onExtract={() => requestExport('selected')}
                     files={
                       files
                     }
@@ -1683,7 +1573,7 @@ function App() {
                     }
 
                     onMerge={
-                      mergeIncludedPages
+                      requestExport
                     }
 
                     onDownload={
@@ -1700,6 +1590,7 @@ function App() {
 
             </div>
 
+            </fieldset>
             <StatusBar
               fileCount={
                 validFileCount
@@ -1726,13 +1617,16 @@ function App() {
           <p>PDFs are processed locally in your browser. GlassPDF does not upload or store your documents on a server.</p>
           <details className="mt-1">
             <summary className="cursor-pointer underline underline-offset-4">Privacy details</summary>
-            <p className="mt-2">Documents are held temporarily in browser memory while you work. Downloaded PDFs are saved on your device. GlassPDF has no analytics or saved workspace. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
+            <p className="mt-2">Documents are held temporarily in browser memory while you work. Downloaded PDFs are saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files and the public sample, never your documents. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
           </details>
         </aside>
       </main>
 
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement} {markedPages.length} pages selected. {includedPages.length} pages included in output.</p>
+      {review && <ExportReview pages={review.pages} mode={review.mode} filename={outputName} setFilename={setOutputName} onClose={() => setReview(null)} onConfirm={mergeIncludedPages} />}
       {previewFile ? (
         <PdfPreviewModal
+          key={`${previewFile.id}-${preview.pageNumber}`}
           file={
             previewFile
           }

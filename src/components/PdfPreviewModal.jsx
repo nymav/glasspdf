@@ -10,9 +10,11 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from 'react'
 
 import PdfCanvas from './PdfCanvas'
+import { openModal } from '../lib/modalFocus'
 
 function PdfPreviewModal({
   file,
@@ -42,23 +44,10 @@ function PdfPreviewModal({
     window.innerWidth,
   )
 
+  const dialogRef = useRef(null)
   useEffect(() => {
-    setCurrentPage(
-      Math.min(
-        Math.max(
-          initialPage,
-          1,
-        ),
-        file.pageCount,
-      ),
-    )
-
-    setZoom(1)
-  }, [
-    file.id,
-    file.pageCount,
-    initialPage,
-  ])
+    return openModal(dialogRef.current)
+  }, [])
 
   useEffect(() => {
     const updateViewport =
@@ -170,11 +159,11 @@ function PdfPreviewModal({
     useMemo(() => {
       const available =
         Math.max(
-          320,
+          160,
           Math.min(
             860,
             viewportWidth -
-              140,
+              60,
           ),
         )
 
@@ -187,7 +176,10 @@ function PdfPreviewModal({
     ])
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
+      aria-label="PDF preview"
+      onCancel={event => { event.preventDefault(); onClose() }}
       className="quicklook-backdrop"
 
       onMouseDown={(
@@ -407,7 +399,7 @@ function PdfPreviewModal({
 
       </section>
 
-    </div>
+    </dialog>
   )
 }
 

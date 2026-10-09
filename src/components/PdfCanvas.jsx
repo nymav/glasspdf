@@ -38,14 +38,14 @@ function PdfCanvas({
   ] = useState(!lazy)
 
   const [
-    status,
-    setStatus,
-  ] = useState('loading')
+    result,
+    setResult,
+  ] = useState(null)
+  const renderKey = `${fileId}:${fileUrl}:${pageNumber}:${rotation}:${width}`
+  const status = result?.key === renderKey ? result.status : 'loading'
 
   useEffect(() => {
     if (!lazy) {
-      setShouldRender(true)
-
       return undefined
     }
 
@@ -82,13 +82,11 @@ function PdfCanvas({
   }, [lazy])
 
   useEffect(() => {
-    if (!shouldRender) {
+    if (lazy && !shouldRender) {
       return undefined
     }
 
     let cancelled = false
-
-    setStatus('loading')
 
     const render =
       async () => {
@@ -114,6 +112,7 @@ function PdfCanvas({
 
           if (cancelled) {
             renderTask.cancel()
+            await renderTask.promise.catch(() => {})
             return
           }
 
@@ -123,9 +122,7 @@ function PdfCanvas({
           await renderTask.promise
 
           if (!cancelled) {
-            setStatus(
-              'ready',
-            )
+            setResult({ key: renderKey, status: 'ready' })
           }
         } catch (error) {
           if (
@@ -145,9 +142,7 @@ function PdfCanvas({
             },
           )
 
-          setStatus(
-            'error',
-          )
+          setResult({ key: renderKey, status: 'error' })
         }
       }
 
@@ -167,6 +162,8 @@ function PdfCanvas({
     }
   }, [
     shouldRender,
+    lazy,
+    renderKey,
 
     fileId,
     fileUrl,
@@ -202,7 +199,9 @@ function PdfCanvas({
           canvasRef
         }
 
-        className={`block transition-opacity duration-150 ${
+        role="img"
+      aria-label={`Preview of page ${pageNumber}`}
+      className={`block transition-opacity duration-150 ${
           status ===
           'ready'
             ? 'opacity-100'

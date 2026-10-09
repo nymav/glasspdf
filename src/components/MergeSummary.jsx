@@ -7,6 +7,9 @@ import {
 } from 'lucide-react'
 
 function MergeSummary({
+  outputPageCount,
+  selectedCount,
+  onExtract,
   files,
   pages,
 
@@ -147,11 +150,12 @@ function MergeSummary({
 
         <div>
 
-          <label className="mac-label">
+          <label htmlFor="output-filename" className="mac-label">
             Filename
           </label>
 
           <input
+            id="output-filename"
             type="text"
 
             value={
@@ -198,9 +202,11 @@ function MergeSummary({
           {mergeState ===
           'merging'
             ? 'Creating…'
-            : 'Create PDF'}
+            : 'Review export'}
 
         </button>
+
+        <button type="button" className="mac-secondary-button w-full justify-center" disabled={!selectedCount || mergeState === 'merging'} onClick={onExtract}>Extract selected ({selectedCount || 0})</button>
 
         {outputUrl ? (
           <div className="space-y-2">
@@ -209,7 +215,7 @@ function MergeSummary({
 
               <CheckCircle2 className="h-4 w-4" />
 
-              PDF ready
+              PDF ready · {outputPageCount} {outputPageCount === 1 ? 'page' : 'pages'}
 
             </div>
 

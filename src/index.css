@@ -2634,3 +2634,31 @@ button {
   background:
     rgba(0, 122, 255, 0.2);
 }
+/* Workspace utilities */
+:focus-visible { outline: 3px solid #007aff; outline-offset: 3px; }
+.page-card:focus-within .page-hover-toolbar { opacity: 1; pointer-events: auto; }
+.workspace-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.workspace-fieldset:disabled { opacity: .65; }
+.workspace-guide { padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 12px; line-height: 1.7; color: #475569; }
+.guide-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.workspace-guide details { margin: 6px 0; }
+.workspace-guide summary { cursor: pointer; font-weight: 600; }
+.workspace-guide ul { padding-left: 20px; list-style: disc; }
+.workspace-guide li { margin: 6px 0; }
+.workspace-guide a { text-decoration: underline; color: #0067cb; }
+.operation-panel { padding: 16px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: #eff6ff; }
+.operation-panel progress { flex: 1; min-width: 100px; accent-color: #007aff; }
+.glass-dialog { border: 1px solid #cbd5e1; border-radius: 20px; padding: 24px; width: min(620px, calc(100vw - 24px)); max-height: 85dvh; overflow: auto; margin: auto; box-shadow: 0 20px 100px #0003; color: #334155; font-size: 13px; }
+.glass-dialog::backdrop { background: #0f172a80; backdrop-filter: blur(5px); }
+.dialog-heading, .dialog-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.dialog-heading h2 { font-size: 22px; font-weight: 600; }
+.glass-dialog p, .glass-dialog label { display: block; margin: 12px 0; }
+.review-sequence { max-height: 35dvh; overflow-y: auto; padding: 10px 0; margin: 12px 0; border-block: 1px solid #e2e8f0; }
+.review-sequence li { display: flex; gap: 10px; padding: 6px; overflow-wrap: anywhere; }
+.limitations-note { font-size: 12px; line-height: 1.6; }
+@media (max-width: 480px) { .dialog-actions { flex-direction: column; align-items: stretch; } .workspace-guide { padding: 12px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+.page-card:focus-within .page-select-button { opacity: 1; }
+dialog.quicklook-backdrop { border: 0; padding: 12px; margin: auto; width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; background: transparent; }
+dialog.quicklook-backdrop::backdrop { background: #0f172a80; }

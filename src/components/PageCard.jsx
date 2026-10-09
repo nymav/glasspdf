@@ -161,6 +161,8 @@ function PageCard({
               : ''
           }`}
 
+          aria-label={`Select ${page.fileName}, page ${page.pageNumber}`}
+          aria-pressed={page.marked}
           title="Select page"
         >
           {page.marked ? (
@@ -176,7 +178,8 @@ function PageCard({
 
           className="page-drag-handle"
 
-          title="Drag page"
+          aria-label={`Reorder ${page.fileName}, page ${page.pageNumber}`}
+          title="Reorder page (Space, arrow keys, Space)"
         >
           <GripVertical className="h-4 w-4" />
         </button>

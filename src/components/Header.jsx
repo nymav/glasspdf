@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 
 function Header({
+  busy,
   fileCount,
   pageCount,
 
@@ -35,12 +36,13 @@ function Header({
 
         <div className="hidden h-6 w-px bg-slate-900/10 sm:block" />
 
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} width="36" height="36" alt="" className="shrink-0" />
         <div className="min-w-0">
 
           <div className="flex items-center gap-2">
 
             <h1 className="truncate text-[14px] font-semibold tracking-[-0.01em] text-slate-900">
-              Local PDF Studio
+              GlassPDF
             </h1>
 
             <span className="local-pill">
@@ -73,6 +75,7 @@ function Header({
         <button
           type="button"
 
+          disabled={busy}
           onClick={
             onAddFiles
           }
@@ -95,7 +98,7 @@ function Header({
           }
 
           disabled={
-            !canUndo
+            busy || !canUndo
           }
 
           className="mac-title-button"
@@ -112,7 +115,7 @@ function Header({
           }
 
           disabled={
-            !canRedo
+            busy || !canRedo
           }
 
           className="mac-title-button"
@@ -129,7 +132,7 @@ function Header({
           }
 
           disabled={
-            !hasFiles
+            busy || !hasFiles
           }
 
           className="mac-title-button mac-title-danger"

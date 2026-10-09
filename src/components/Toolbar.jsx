@@ -4,7 +4,6 @@ import {
 } from 'lucide-react'
 
 import {
-  useEffect,
   useState,
 } from 'react'
 
@@ -44,24 +43,7 @@ function Toolbar({
     setRangeOpen,
   ] = useState(false)
 
-  useEffect(() => {
-    if (
-      usableFiles.some(
-        (file) =>
-          file.id ===
-          selectedFile,
-      )
-    ) {
-      return
-    }
-
-    setSelectedFile(
-      usableFiles[0]?.id || '',
-    )
-  }, [
-    usableFiles,
-    selectedFile,
-  ])
+  const activeFile = usableFiles.some(file => file.id === selectedFile) ? selectedFile : usableFiles[0]?.id || ''
 
   return (
     <div className="page-toolbar">
@@ -153,7 +135,7 @@ function Toolbar({
 
           <select
             value={
-              selectedFile
+              activeFile
             }
 
             onChange={(event) =>
@@ -162,6 +144,7 @@ function Toolbar({
               )
             }
 
+            aria-label="Document for page range"
             className="mac-input"
           >
 
@@ -196,12 +179,15 @@ function Toolbar({
               )
             }
 
+            aria-label="Page range"
             placeholder="1-4, 7, 10-12"
 
             className="mac-input mt-2"
           />
 
           <div className="mt-2 flex gap-1.5">
+            <button type="button" className="mac-secondary-button flex-1 justify-center" onClick={() => onApplyRange({ fileId: activeFile, expression: range, mode: 'select' })}>Select</button>
+
 
             <button
               type="button"
@@ -209,7 +195,7 @@ function Toolbar({
               onClick={() =>
                 onApplyRange({
                   fileId:
-                    selectedFile,
+                    activeFile,
 
                   expression:
                     range,
@@ -230,7 +216,7 @@ function Toolbar({
               onClick={() =>
                 onApplyRange({
                   fileId:
-                    selectedFile,
+                    activeFile,
 
                   expression:
                     range,
@@ -254,7 +240,7 @@ function Toolbar({
 
               onClick={() =>
                 onSetFileMarks(
-                  selectedFile,
+                  activeFile,
                   true,
                 )
               }

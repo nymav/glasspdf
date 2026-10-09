@@ -32,3 +32,10 @@ createRoot(
 
   </StrictMode>,
 )
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    setTimeout(() => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL }).catch(() => {
+      // Local processing still works online if offline setup is unavailable.
+    }), 3000)
+  })
+}

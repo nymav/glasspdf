@@ -15,7 +15,6 @@ import {
   
   function FileRow({
     file,
-    index,
   
     dragging,
     dragOver,
@@ -108,7 +107,7 @@ import {
   
                 <p className="mt-[2px] text-[10px] text-slate-500">
                   {file.error
-                    ? 'Unreadable PDF'
+                    ? file.error
                     : `${file.pageCount} page${
                         file.pageCount ===
                         1
@@ -134,7 +133,8 @@ import {
                       )
                     }
   
-                    className="document-more"
+                    aria-label={`More actions for ${file.name}`}
+                className="document-more"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>

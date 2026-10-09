@@ -1,9 +1,11 @@
-import * as pdfjsLib from 'pdfjs-dist'
-
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  pdfWorkerUrl
+let pdfjsPromise
+const loadPdfjs = () => pdfjsPromise ||= Promise.all([
+  import('pdfjs-dist'),
+  import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+]).then(([pdfjs, worker]) => {
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default
+  return pdfjs
+})
 
 const documentCache =
   new Map()
@@ -31,6 +33,7 @@ export const getCachedPdfDocument =
       return cached.promise
     }
 
+    const pdfjsLib = await loadPdfjs()
     const loadingTask =
       pdfjsLib.getDocument({
         url: fileUrl,

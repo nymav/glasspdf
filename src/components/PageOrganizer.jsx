@@ -2,6 +2,7 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  KeyboardSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -10,6 +11,7 @@ import {
 import {
   SortableContext,
   rectSortingStrategy,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 
 import {
@@ -74,6 +76,7 @@ function PageOrganizer({
 
   const sensors =
     useSensors(
+      useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
       useSensor(
         PointerSensor,
         {
@@ -149,7 +152,7 @@ function PageOrganizer({
     ]
 
   return (
-    <section className="page-workspace">
+    <section className="page-workspace" aria-label="Page organizer">
 
       <div className="workspace-heading">
 
@@ -160,7 +163,7 @@ function PageOrganizer({
           </h2>
 
           <p>
-            Drag any page to refine the final sequence
+            Drag pages, or use Space and arrow keys on a reorder handle
           </p>
 
         </div>
@@ -214,6 +217,15 @@ function PageOrganizer({
             sensors
           }
 
+          accessibility={{
+            screenReaderInstructions: { draggable: 'Press Space to pick up a page. Use arrow keys to move it. Press Space to place it, or Escape to cancel.' },
+            announcements: {
+              onDragStart: ({active}) => `Picked up page ${pages.findIndex(page => page.id === active.id) + 1}.`,
+              onDragOver: ({over}) => over ? `Move to position ${pages.findIndex(page => page.id === over.id) + 1}.` : undefined,
+              onDragEnd: ({over}) => over ? `Page placed at position ${pages.findIndex(page => page.id === over.id) + 1}.` : 'Move cancelled.',
+              onDragCancel: () => 'Move cancelled.',
+            },
+          }}
           collisionDetection={
             closestCenter
           }

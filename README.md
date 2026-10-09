@@ -141,9 +141,45 @@ Your PDF content is not intentionally transmitted to a server by the application
 
 > If GlassPDF is hosted online, the browser still downloads the application assets such as HTML, JavaScript, CSS, and the PDF.js worker from the hosting environment. The PDF documents themselves are processed locally by the application.
 
-## Local Development
+## Workspace features
 
-Install dependencies:
+- Try a public, three-page sample PDF with no sensitive data.
+- Review exact page order, output count and filename before export.
+- Extract marked pages into a separate PDF without modifying the workspace.
+- Progress indicators and cancellable import/export using disposable web workers.
+- File-type validation, actionable encrypted/damaged PDF errors and memory guidance.
+- Keyboard page reordering (Space, arrows, Space), visible focus and screen-reader announcements.
+- Help, shortcuts, export limitations and a public GitHub feedback link.
+- Original GlassPDF logo, favicon, installation icons and app manifest.
+
+## Offline use
+
+After one complete online visit, the app reports **Ready for offline use**. The service worker caches only application assets and the public sample PDF, never user documents or output blobs. Browser storage permissions and cache eviction can affect availability. Reloading does not restore your documents: download results before leaving. Supported browsers offer app installation; installation is optional for offline use.
+
+PDF processing libraries load separately from the initial interface. After a short delay, offline setup downloads those libraries in the background so they can also run without a connection.
+
+## Export limitations
+
+Export copies pages into a new document. Digital signatures are not preserved. Interactive forms, bookmarks, links, annotations, accessibility tags and metadata may be changed or lost. Inspect the exported file and retain originals. GlassPDF is not a signing, redaction or compression tool.
+
+## Hosting privacy
+
+PDFs are processed locally in your browser. GlassPDF does not upload or store your documents on a server. Documents and output blobs are temporarily held by the browser. Downloads are saved on the user's device. GitHub Pages logs visitor IP addresses for security; browsers and operating systems may keep local history, cache or temporary data.
+
+## Local development
 
 ```bash
-npm install
+npm ci
+npm run dev
+```
+
+Production and quality checks:
+
+```bash
+npm run lint
+npm test
+npm run build
+npm run preview
+```
+
+The GitHub Actions workflow builds and deploys `main` to https://nymav.github.io/glasspdf/. It runs lint and PDF processing tests before publishing.
