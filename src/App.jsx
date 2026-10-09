@@ -1638,6 +1638,7 @@ function App() {
             <p className="mt-2">Documents are held temporarily in browser memory while you work. Downloaded PDFs are saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files and the public sample, never your documents. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
           </details>
         </aside>
+        <footer className="px-6 pb-6 text-center text-xs text-slate-600">A product of <span className="font-medium text-slate-800">Teyrin</span></footer>
       </main>
 
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement} {markedPages.length} pages selected. {includedPages.length} pages included in output.</p>

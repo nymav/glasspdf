@@ -1,5 +1,7 @@
 # GlassPDF — Local PDF Studio
 
+A product of **Teyrin**.
+
 A polished, privacy-first PDF workspace built with React + Vite.
 
 GlassPDF lets you combine, preview, rearrange, rotate, duplicate, include, exclude, and export PDF pages directly in your browser.
