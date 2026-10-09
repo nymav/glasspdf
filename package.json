@@ -1,14 +1,17 @@
 {
   "name": "pdfmerger",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "desktop:build": "vite build --mode desktop --outDir dist-desktop",
+    "desktop:dev": "npm run desktop:build && electron .",
+    "desktop:package": "npm run desktop:build && electron-builder --publish never"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
@@ -28,6 +31,8 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.1",
     "autoprefixer": "10.5.0",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
     "eslint": "10.2.1",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.2",
@@ -35,5 +40,44 @@
     "postcss": "8.5.14",
     "tailwindcss": "4.2.4",
     "vite": "8.0.10"
+  },
+  "main": "desktop/main.cjs",
+  "description": "Private local PDF workspace with verified exports",
+  "author": "Nikhil Yarra",
+  "license": "UNLICENSED",
+  "build": {
+    "appId": "com.teyrin.glasspdf",
+    "productName": "GlassPDF",
+    "directories": {
+      "output": "desktop-release"
+    },
+    "files": [
+      "dist-desktop/**/*",
+      "desktop/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "asar": true,
+    "artifactName": "GlassPDF-${version}-${os}-${arch}.${ext}",
+    "mac": {
+      "target": [
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "identity": null
+    },
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office"
+    },
+    "icon": "public/icon-512.png",
+    "npmRebuild": false
   }
 }

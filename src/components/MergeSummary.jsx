@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 
 function MergeSummary({
+  downloadRequested,
   outputPageCount,
   selectedCount,
   onExtract,
@@ -215,7 +216,7 @@ function MergeSummary({
 
               <CheckCircle2 className="h-4 w-4" />
 
-              PDF ready · {outputPageCount} {outputPageCount === 1 ? 'page' : 'pages'}
+              Verified PDF · {outputPageCount} {outputPageCount === 1 ? 'page' : 'pages'}
 
             </div>
 
@@ -248,6 +249,8 @@ function MergeSummary({
           </div>
         ) : null}
 
+        {outputUrl && <p className="text-xs leading-5 text-slate-600">{downloadRequested ? 'Download requested. Check your downloads folder.' : 'Not downloaded yet. Download before closing or reloading.'}</p>}
+        <p className="text-xs leading-5 text-slate-600">Exports are new files. Your originals stay unchanged.</p>
         <div className="export-privacy">
 
           <div className="privacy-dot" />

@@ -7,3 +7,6 @@ dist/
 *.log
 .vscode/
 .idea/
+
+dist-desktop/
+desktop-release/

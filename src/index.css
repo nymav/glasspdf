@@ -2662,3 +2662,8 @@ button {
 .page-card:focus-within .page-select-button { opacity: 1; }
 dialog.quicklook-backdrop { border: 0; padding: 12px; margin: auto; width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; background: transparent; }
 dialog.quicklook-backdrop::backdrop { background: #0f172a80; }
+
+.page-batch-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; font-size: 11px; line-height: 1.6; flex-wrap: wrap; }
+
+.mac-download-button { background: #157c35; }
+.mac-download-button:hover { background: #11652b; }

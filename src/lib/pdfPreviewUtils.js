@@ -34,9 +34,13 @@ export const getCachedPdfDocument =
     }
 
     const pdfjsLib = await loadPdfjs()
+    const existing = documentCache.get(fileId)
+    if (existing) return existing.promise
     const loadingTask =
       pdfjsLib.getDocument({
         url: fileUrl,
+        verbosity: 0,
+        isEvalSupported: false,
       })
 
     const promise =

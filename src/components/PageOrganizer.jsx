@@ -20,6 +20,7 @@ import {
 
 import {
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
@@ -73,6 +74,13 @@ function PageOrganizer({
     viewSize,
     setViewSize,
   ] = useState('medium')
+
+  const scrollRef = useRef(null)
+  const BATCH_SIZE = 120
+  const [batch, setBatch] = useState(0)
+  const currentBatch = Math.min(batch, Math.max(0, Math.ceil(pages.length / BATCH_SIZE) - 1))
+  const batchStart = currentBatch * BATCH_SIZE
+  const visiblePages = pages.slice(batchStart, batchStart + BATCH_SIZE)
 
   const sensors =
     useSensors(
@@ -210,7 +218,12 @@ function PageOrganizer({
         }
       />
 
-      <div className="page-scroll-area">
+      {pages.length > BATCH_SIZE && <nav className="page-batch-nav" aria-label="Browse document pages">
+        <button className="mac-secondary-button" disabled={currentBatch === 0} onClick={() => { setBatch(currentBatch - 1); scrollRef.current.scrollTop = 0 }}>Previous pages</button>
+        <span role="status">Showing {batchStart + 1}–{Math.min(batchStart + BATCH_SIZE, pages.length)} of {pages.length}. Selection and export include all batches.</span>
+        <button className="mac-secondary-button" disabled={batchStart + BATCH_SIZE >= pages.length} onClick={() => { setBatch(currentBatch + 1); scrollRef.current.scrollTop = 0 }}>Next pages</button>
+      </nav>}
+      <div ref={scrollRef} className="page-scroll-area">
 
         <DndContext
           sensors={
@@ -260,7 +273,7 @@ function PageOrganizer({
         >
 
           <SortableContext
-            items={pages.map(
+            items={visiblePages.map(
               (page) =>
                 page.id,
             )}
@@ -274,7 +287,7 @@ function PageOrganizer({
               className={`page-grid ${currentSize.className}`}
             >
 
-              {pages.map(
+              {visiblePages.map(
                 (
                   page,
                   index,
@@ -289,7 +302,7 @@ function PageOrganizer({
                     }
 
                     outputIndex={
-                      index + 1
+                      batchStart + index + 1
                     }
 
                     sourceIncluded={

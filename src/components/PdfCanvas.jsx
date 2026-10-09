@@ -42,7 +42,7 @@ function PdfCanvas({
     setResult,
   ] = useState(null)
   const renderKey = `${fileId}:${fileUrl}:${pageNumber}:${rotation}:${width}`
-  const status = result?.key === renderKey ? result.status : 'loading'
+  const status = (!lazy || shouldRender) && result?.key === renderKey ? result.status : 'loading'
 
   useEffect(() => {
     if (!lazy) {
@@ -56,24 +56,7 @@ function PdfCanvas({
       return undefined
     }
 
-    const observer =
-      new IntersectionObserver(
-        ([entry]) => {
-          if (
-            entry.isIntersecting
-          ) {
-            setShouldRender(
-              true,
-            )
-
-            observer.disconnect()
-          }
-        },
-
-        {
-          rootMargin: '350px',
-        },
-      )
+    const observer = new IntersectionObserver(([entry]) => setShouldRender(entry.isIntersecting), { rootMargin: '0px' })
 
     observer.observe(element)
 
@@ -83,10 +66,12 @@ function PdfCanvas({
 
   useEffect(() => {
     if (lazy && !shouldRender) {
+      if (canvasRef.current) { canvasRef.current.width = 0; canvasRef.current.height = 0 }
       return undefined
     }
 
     let cancelled = false
+    const canvas = canvasRef.current
 
     const render =
       async () => {
@@ -101,7 +86,7 @@ function PdfCanvas({
               pageNumber,
 
               canvas:
-                canvasRef.current,
+                canvas,
 
               targetWidth:
                 width,
@@ -133,15 +118,6 @@ function PdfCanvas({
             return
           }
 
-          console.error(
-            'PDF preview failed:',
-            {
-              fileId,
-              pageNumber,
-              error,
-            },
-          )
-
           setResult({ key: renderKey, status: 'error' })
         }
       }
@@ -157,6 +133,7 @@ function PdfCanvas({
         // Ignore cancellation.
       }
 
+      if (canvas) { canvas.width = 0; canvas.height = 0 }
       renderTaskRef.current =
         null
     }

@@ -183,3 +183,27 @@ npm run preview
 ```
 
 The GitHub Actions workflow builds and deploys `main` to https://nymav.github.io/glasspdf/. It runs lint and PDF processing tests before publishing.
+
+## Sensitive-document safeguards (0.3.0)
+
+- Closing or reloading warns while valid work or an output is undownloaded. Browsers choose their own warning wording and may suppress it in some mobile/background situations. “Download requested” is not proof the user completed the save dialog; check the destination folder.
+- Clear workspace revokes document/output blob URLs and drops documents, previews and undo/redo history from the app. It does not delete original/downloaded files or promise secure erasure of OS/browser memory.
+- Export reopens the serialized PDF and checks count, positional content streams, dimensions and rotation against the reviewed builder output before enabling download. This is structural verification, not a visual, signature or accessibility certification.
+- The UI retains original File objects, not duplicate PDF byte arrays. Export reads only referenced source files in a disposable worker; output bytes transfer back without another worker-message copy.
+- At most 120 page cards mount per batch. Only intersecting thumbnails render, and offscreen raster buffers are released. Selection, extraction and export span all batches.
+- Public error messages are restricted to known, actionable messages. Arbitrary parser errors and document filenames are not copied into app logs or error toasts. Filenames remain visible inside the local workspace so users can identify their files.
+- Original input files are read, never overwritten. Exports are new files.
+
+## Desktop edition
+
+Downloads: https://github.com/nymav/glasspdf/releases
+
+The Electron edition bundles the complete interface, sample, PDF libraries and workers. It requires no hosting connection to start or process PDFs. Its document session is in memory, Node integration is disabled in the renderer, context isolation and sandboxing are enabled, and a custom local protocol serves only bundled assets. Outbound app requests and permissions are blocked. Only the explicit feedback link opens the fixed public GitHub issue URL in the user's browser. There is no auto-update telemetry or saved workspace.
+
+```bash
+npm ci
+npm run desktop:dev
+npm run desktop:package
+```
+
+Tags such as `v0.3.0` trigger Mac (Apple Silicon and Intel), Windows x64 and Linux x64 packaging and publish the resulting downloads. Builds are unsigned/not notarized; operating systems may require approval to open them. The Mac Apple Silicon package is tested locally; other-platform build success does not replace testing on those physical devices.

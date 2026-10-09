@@ -3,12 +3,13 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { createHash } from 'node:crypto'
 
-export default defineConfig({
-  base: '/glasspdf/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'desktop' ? '/' : '/glasspdf/',
   plugins: [react(), tailwindcss(), {
     name: 'glasspdf-offline',
     apply: 'build',
     generateBundle(_, bundle) {
+      if (mode === 'desktop') return
       const assets = Object.keys(bundle)
       const version = createHash('sha256').update(JSON.stringify(bundle)).digest('hex').slice(0, 12)
       const urls = ['./', './index.html', './favicon.svg', './manifest.webmanifest', './icon-192.png', './icon-512.png', './sample.pdf', ...assets.map(name => './' + name)]
@@ -35,4 +36,4 @@ self.addEventListener('fetch', event => {
 });` })
     },
   }],
-})
+}))

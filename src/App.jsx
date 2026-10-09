@@ -31,6 +31,8 @@ import WorkspaceGuide from './components/WorkspaceGuide'
 const HISTORY_LIMIT = 25
 
 function App() {
+  const [downloadRequested, setDownloadRequested] = useState(false)
+  const [unsaved, setUnsaved] = useState(false)
   const [outputPageCount, setOutputPageCount] = useState(0)
   const [operation, setOperation] = useState(null)
   const [review, setReview] = useState(null)
@@ -105,6 +107,13 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!unsaved) return
+    const warn = event => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [unsaved])
+
   // =====================================================
   // LOOKUPS
   // =====================================================
@@ -168,6 +177,7 @@ function App() {
     outputUrlRef.current = ''
 
     setOutputUrl('')
+    setDownloadRequested(false)
     setOutputPageCount(0)
     setMergeState('idle')
   }
@@ -204,6 +214,7 @@ function App() {
 
     setFiles(nextFiles)
     setPages(nextPages)
+    if (affectsOutput) setUnsaved(nextPages.length > 0)
 
     if (
       preview &&
@@ -250,15 +261,15 @@ function App() {
         setOperation({ done: index, total: supported.length, label: `Reading document ${index + 1} of ${supported.length}` })
         const id = makeId()
         try {
-          const { bytes, pageCount } = await runPdfJob('parse', { file })
+          const { pageCount } = await runPdfJob('parse', { file })
           if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
           const fileUrl = URL.createObjectURL(file); newUrls.push(fileUrl)
-          newFiles.push({ id, name: file.name, size: file.size, pageCount, included: true, bytes, fileUrl, error: null })
+          newFiles.push({ id, name: file.name, size: file.size, pageCount, included: true, source: file, fileUrl, error: null })
           for (let index = 0; index < pageCount; index++) newPages.push({ id: makeId(), fileId: id, fileName: file.name, originalPageIndex: index, pageNumber: index + 1, included: true, marked: false, rotation: 0, fileUrl })
         } catch (error) {
           if (error.name === 'AbortError' || token.cancelled) throw error
-          newFiles.push({ id, name: file.name, size: file.size, pageCount: 0, included: false, bytes: null, fileUrl: '', error: error.message })
-          toast.error(`${file.name}: ${error.message}`)
+          newFiles.push({ id, name: file.name, size: file.size, pageCount: 0, included: false, source: null, fileUrl: '', error: error.message })
+          toast.error(error.message)
         }
       }
       if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
@@ -923,6 +934,7 @@ function App() {
       ],
     )
 
+    setUnsaved(previous.pages.length > 0)
     setFiles(
       previous.files,
     )
@@ -969,6 +981,7 @@ function App() {
       ],
     )
 
+    setUnsaved(next.pages.length > 0)
     setFiles(next.files)
     setPages(next.pages)
 
@@ -987,7 +1000,7 @@ function App() {
     if (
       files.length > 0 &&
       !window.confirm(
-        'Remove every PDF from this workspace?',
+        'Clear all documents, previews, generated output and undo history from this app? Downloads and original files on your device will remain.',
       )
     ) {
       return
@@ -1014,6 +1027,11 @@ function App() {
     setRedoStack([])
 
     setPreview(null)
+    setReview(null)
+    setUnsaved(false)
+    setDownloadRequested(false)
+    const message = 'Workspace cleared. Documents, previews and undo history were released from the app. This does not securely erase device memory or delete originals and downloads.'
+    announce(message); toast.success(message)
   }
 
   // =====================================================
@@ -1023,7 +1041,7 @@ function App() {
   const requestExport = (mode = 'all') => {
     if (operationRef.current) return
     const selected = mode === 'selected'
-      ? pages.filter(page => page.marked && filesById[page.fileId]?.bytes)
+      ? pages.filter(page => page.marked && filesById[page.fileId]?.source)
       : includedPages
     if (!selected.length) { toast.error(mode === 'selected' ? 'Select at least one page to extract.' : 'Include at least one page.'); return }
     setReview({ pages: selected.map(page => ({ ...page })), mode, version: workspaceVersionRef.current })
@@ -1037,13 +1055,13 @@ function App() {
     const token = { cancelled: false }; operationRef.current = token
     invalidateOutput(); setMergeState('merging'); setOperation({ done: 0, total: snapshot.pages.length, label: 'Preparing export' })
     try {
-      const mergedBytes = await runPdfJob('merge', { selectedPages: snapshot.pages, files: files.filter(file => !file.error) }, progress => {
+      const mergedBytes = await runPdfJob('merge', { selectedPages: snapshot.pages, files: files.filter(file => !file.error && snapshot.pages.some(page => page.fileId === file.id)).map(file => ({ id: file.id, source: file.source })) }, progress => {
         setOperation(progress)
       })
       if (token.cancelled || workspaceVersionRef.current !== snapshot.version) throw new DOMException('Cancelled', 'AbortError')
       const mergedUrl = toObjectUrl(mergedBytes, 'application/pdf')
-      outputUrlRef.current = mergedUrl; setOutputUrl(mergedUrl); setOutputPageCount(snapshot.pages.length); setMergeState('done')
-      announce(`PDF ready. ${snapshot.pages.length} pages exported.`); toast.success('PDF ready')
+      outputUrlRef.current = mergedUrl; setOutputUrl(mergedUrl); setOutputPageCount(snapshot.pages.length); setMergeState('done'); setDownloadRequested(false); setUnsaved(true)
+      announce(`Verified PDF ready. ${snapshot.pages.length} pages checked in output order.`); toast.success('PDF verified and ready')
     } catch (error) {
       setMergeState('idle')
       if (error.name === 'AbortError' || token.cancelled) { toast.message('Export cancelled. Your documents were kept.'); announce('Export cancelled.') }
@@ -1077,6 +1095,9 @@ function App() {
       link.click()
 
       link.remove()
+      setDownloadRequested(true)
+      setUnsaved(false)
+      announce('Download requested. Check your downloads folder; original files are unchanged.')
     }
 
   const previewMergedPdf =
@@ -1085,11 +1106,7 @@ function App() {
         return
       }
 
-      window.open(
-        outputUrl,
-        '_blank',
-        'noopener,noreferrer',
-      )
+      setPreview({ fileId: 'generated-output', pageNumber: 1, pageId: null })
     }
 
   // =====================================================
@@ -1143,9 +1160,9 @@ function App() {
 
   const previewFile =
     preview
-      ? filesById[
-          preview.fileId
-        ]
+      ? preview.fileId === 'generated-output'
+        ? { id: 'generated-output', name: ensurePdfExtension(outputName), fileUrl: outputUrl, pageCount: outputPageCount }
+        : filesById[preview.fileId]
       : null
 
   // =====================================================
@@ -1545,8 +1562,9 @@ function App() {
                   />
 
                   <MergeSummary
+                    downloadRequested={downloadRequested}
                     outputPageCount={outputPageCount}
-                    selectedCount={markedPages.filter(page => filesById[page.fileId]?.bytes).length}
+                    selectedCount={markedPages.filter(page => filesById[page.fileId]?.source).length}
                     onExtract={() => requestExport('selected')}
                     files={
                       files
@@ -1614,7 +1632,7 @@ function App() {
         </div>
 
         <aside aria-label="Document privacy" className="mx-auto max-w-3xl px-6 py-5 text-center text-xs leading-6 text-slate-600">
-          <p>PDFs are processed locally in your browser. GlassPDF does not upload or store your documents on a server.</p>
+          <p>PDFs are processed locally in your browser. GlassPDF does not upload or store your documents on a server. Your original files stay unchanged; exports are new PDFs.</p>
           <details className="mt-1">
             <summary className="cursor-pointer underline underline-offset-4">Privacy details</summary>
             <p className="mt-2">Documents are held temporarily in browser memory while you work. Downloaded PDFs are saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files and the public sample, never your documents. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>

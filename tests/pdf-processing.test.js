@@ -27,3 +27,33 @@ test('export preserves requested order, extraction count and page rotations', as
 test('missing source pages fail instead of silently dropping content', async () => {
   await assert.rejects(mergePdfPages({ files: [], selectedPages: [{ fileId: 'gone', originalPageIndex: 0 }] }), /missing/)
 })
+
+test('verification rejects wrong order even when page sizes match', async () => {
+  const { verifyPdfOutput } = await import('../src/lib/pdfUtils.js')
+  const expected = await PDFDocument.create()
+  expected.addPage([300, 500]).drawText('First source page')
+  expected.addPage([300, 500]).drawText('Second source page')
+  const correct = await expected.save()
+  assert.equal(await verifyPdfOutput(correct, expected), 2)
+  const changed = await PDFDocument.create()
+  const reversed = await changed.copyPages(expected, [1, 0]); reversed.forEach(page => changed.addPage(page))
+  await assert.rejects(verifyPdfOutput(await changed.save(), expected), /verification failed/)
+  const truncated = await PDFDocument.create(); truncated.addPage()
+  await assert.rejects(verifyPdfOutput(await truncated.save(), expected), /page count/)
+})
+
+test('source File exports are verified without mutating originals', async () => {
+  const original = await PDFDocument.create(); original.addPage().drawText('Original document')
+  const originalBytes = await original.save()
+  const source = new File([originalBytes], 'sensitive-client.pdf', { type: 'application/pdf' })
+  const output = await mergePdfPages({ files: [{ id: 'source', source }], selectedPages: [{ fileId: 'source', originalPageIndex: 0, rotation: 90 }] })
+  assert.equal((await PDFDocument.load(output)).getPage(0).getRotation().angle, 90)
+  assert.deepEqual(new Uint8Array(await source.arrayBuffer()), originalBytes)
+})
+
+test('public processing errors never echo arbitrary parser data', async () => {
+  const { publicPdfError } = await import('../src/lib/pdfUtils.js')
+  const privateError = new Error('patient-name.pdf contains patient account 123')
+  assert.doesNotMatch(publicPdfError(privateError, 'merge'), /patient|123/)
+  assert.doesNotMatch(publicPdfError(privateError, 'parse'), /patient|123/)
+})

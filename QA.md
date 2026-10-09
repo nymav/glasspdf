@@ -17,3 +17,13 @@ All 12 requested additions are implemented: sample PDF; file guidance and action
 ## User-facing limits
 
 Offline support needs one complete online visit and browser cache availability. PDF workspace state is not saved. Users must download their results before reloading. Signatures are not preserved; forms/bookmarks/annotations/tags/metadata may change or be lost. GitHub hosting logs and browser/OS temporary data remain outside the app's document-processing guarantee.
+
+## 0.3.0 sensitive-document update
+
+Six Node tests pass, including wrong-order rejection for pages with equal dimensions, damaged/count mismatch rejection, File-based export and original-byte preservation, and parser-error redaction. ESLint and production/desktop builds pass.
+
+Chrome/Firefox/WebKit checks pass for export, rotation, focus cycling and 320/390/768/1440 layouts. Chrome/Firefox offline reload/export pass; WebKit offline reload/export passes with the test server unavailable. Automated axe review checks have no detected violations.
+
+A 350-page test confirms 120 mounted cards, eight active raster thumbnails in a 1440px viewport, zero-width freed offscreen rasters, next-batch navigation and extraction of pages 1 and 350. Close/reload dismissal preserves work; clearing removes cards/history; generated files show a verified state. No filename echoed into app error toasts/logs and no non-GET document-processing requests observed.
+
+The packaged Mac ARM64 desktop edition starts from its bundled protocol, imports/verifies/exports a three-page sample and previews output. Renderer Node access is absent; localStorage is empty. An intentional external-fetch probe is blocked by CSP/request filtering, with no HTTP requests and no application errors. Desktop session storage is in memory; OS temporary memory is not a secure-erasure guarantee. Desktop packages are unsigned/not notarized. Windows/Linux/Intel-Mac runtime behavior requires testing on those devices.

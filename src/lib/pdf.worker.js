@@ -1,10 +1,10 @@
-import { parsePdfFile, mergePdfPages } from './pdfUtils'
+import { parsePdfFile, mergePdfPages, publicPdfError } from './pdfUtils'
 self.onmessage = async ({ data: { type, payload } }) => {
   try {
     const onProgress = progress => self.postMessage({ progress })
     const result = type === 'parse'
-      ? await parsePdfFile(payload.file, onProgress)
+      ? { pageCount: (await parsePdfFile(payload.file, onProgress)).pageCount }
       : await mergePdfPages({ ...payload, onProgress })
-    self.postMessage({ result })
-  } catch (error) { self.postMessage({ error: error.message || 'Unable to process this PDF.' }) }
+    self.postMessage({ result }, result instanceof Uint8Array ? [result.buffer] : [])
+  } catch (error) { self.postMessage({ error: publicPdfError(error, type) }) }
 }
