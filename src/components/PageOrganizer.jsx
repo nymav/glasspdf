@@ -1,7 +1,8 @@
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   KeyboardSensor,
   closestCenter,
   useSensor,
@@ -75,6 +76,7 @@ function PageOrganizer({
     setViewSize,
   ] = useState('medium')
 
+  const [dragPreview, setDragPreview] = useState(null)
   const scrollRef = useRef(null)
   const BATCH_SIZE = 120
   const [batch, setBatch] = useState(0)
@@ -85,8 +87,9 @@ function PageOrganizer({
   const sensors =
     useSensors(
       useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+      useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
       useSensor(
-        PointerSensor,
+        MouseSensor,
         {
           activationConstraint: {
             distance: 6,
@@ -171,7 +174,7 @@ function PageOrganizer({
           </h2>
 
           <p>
-            Drag pages, or use Space and arrow keys on a reorder handle
+            Drag anywhere on a page. Keyboard: focus the preview, then Space and arrows.
           </p>
 
         </div>
@@ -243,23 +246,23 @@ function PageOrganizer({
             closestCenter
           }
 
-          onDragStart={({
-            active,
-          }) =>
-            setActiveId(
-              active.id,
-            )
-          }
+          onDragStart={({ active }) => {
+            const card = document.querySelector(`[data-page-id="${active.id}"]`)
+            const canvas = card?.querySelector('canvas')
+            const paper = card?.querySelector('.page-paper')
+            const rect = card?.getBoundingClientRect()
+            setDragPreview({ width: rect?.width || currentSize.width, paperHeight: paper?.getBoundingClientRect().height || currentSize.width / .72, image: canvas?.width ? canvas.toDataURL('image/png') : null })
+            setActiveId(active.id)
+          }}
 
-          onDragCancel={() =>
-            setActiveId(null)
-          }
+          onDragCancel={() => { setActiveId(null); setDragPreview(null) }}
 
           onDragEnd={({
             active,
             over,
           }) => {
             setActiveId(null)
+            setDragPreview(null)
 
             if (!over) {
               return
@@ -363,16 +366,12 @@ function PageOrganizer({
                 >
 
                   {activePage ? (
-                    <div className="page-drag-overlay">
-
-                      <p className="truncate text-xs font-semibold text-slate-800">
-                        {activePage.fileName}
-                      </p>
-
-                      <p className="mt-1 text-[10px] text-[#007aff]">
-                        Page {activePage.pageNumber}
-                      </p>
-
+                    <div className="page-card page-full-drag-overlay" style={{ width: dragPreview?.width }} aria-hidden="true">
+                      <div className="page-paper" style={{ height: dragPreview?.paperHeight }}>
+                        {dragPreview?.image ? <img src={dragPreview.image} alt="" className="drag-page-image" /> : <div className="drag-page-placeholder">Page {activePage.pageNumber}</div>}
+                      </div>
+                      <p className="mt-2 truncate text-[11px] font-medium text-slate-700">{activePage.fileName}</p>
+                      <p className="text-[10px] text-slate-500">p.{activePage.pageNumber}</p>
                     </div>
                   ) : null}
 

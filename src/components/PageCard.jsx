@@ -2,7 +2,6 @@ import {
   Check,
   Copy,
   Eye,
-  GripVertical,
   RotateCcw,
   RotateCw,
   Trash2,
@@ -86,6 +85,7 @@ function PageCard({
 
   return (
     <article
+      data-page-id={page.id}
       ref={
         setNodeRef
       }
@@ -116,7 +116,9 @@ function PageCard({
 
       <div className="relative">
 
-        <div className="page-paper">
+        <div className="page-paper page-drag-surface" {...attributes} {...listeners}
+          aria-label={`Reorder ${page.fileName}, page ${page.pageNumber}`}
+          title="Drag anywhere on this page. Keyboard: Space, arrows, Space.">
 
           <PdfCanvas
             fileId={
@@ -168,20 +170,6 @@ function PageCard({
           {page.marked ? (
             <Check className="h-3.5 w-3.5" />
           ) : null}
-        </button>
-
-        <button
-          type="button"
-
-          {...attributes}
-          {...listeners}
-
-          className="page-drag-handle"
-
-          aria-label={`Reorder ${page.fileName}, page ${page.pageNumber}`}
-          title="Reorder page (Space, arrow keys, Space)"
-        >
-          <GripVertical className="h-4 w-4" />
         </button>
 
         <span className="page-number-badge">

@@ -29,7 +29,7 @@ export default function WorkspaceGuide({ onSample, busy }) {
       {installPrompt && <button className="mac-secondary-button" onClick={async () => { await installPrompt.prompt(); setInstallPrompt(null) }}>Install app</button>}
     </div>
     <details><summary>Help & shortcuts</summary>
-      <ul><li>Add PDFs, then drag pages or focus a page’s reorder handle and press Space, arrow keys, then Space to place. Escape cancels a move.</li>
+      <ul><li>Add PDFs, then drag anywhere on a page preview, or focus the preview and press Space, arrow keys, then Space to place. Escape cancels a move. On touch screens, hold a preview briefly to move it; swipe normally to scroll.</li>
       <li>Select page buttons to mark pages. “Final” controls inclusion in the full export. “Extract selected” saves marked pages separately without changing the workspace.</li>
       <li>Range accepts 1–4, 7, 10–12 (use a hyphen). Choose Select to extract that range, or Include/Exclude to change the full export.</li>
       <li>Ctrl/⌘ O: add files · Ctrl/⌘ Z: undo · Ctrl/⌘ Shift Z: redo · Ctrl/⌘ A: select pages · Ctrl/⌘ E: review export · Space: preview one selected page · Delete: remove selected pages.</li>

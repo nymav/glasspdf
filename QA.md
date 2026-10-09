@@ -27,3 +27,9 @@ Chrome/Firefox/WebKit checks pass for export, rotation, focus cycling and 320/39
 A 350-page test confirms 120 mounted cards, eight active raster thumbnails in a 1440px viewport, zero-width freed offscreen rasters, next-batch navigation and extraction of pages 1 and 350. Close/reload dismissal preserves work; clearing removes cards/history; generated files show a verified state. No filename echoed into app error toasts/logs and no non-GET document-processing requests observed.
 
 The packaged Mac ARM64 desktop edition starts from its bundled protocol, imports/verifies/exports a three-page sample and previews output. Renderer Node access is absent; localStorage is empty. An intentional external-fetch probe is blocked by CSP/request filtering, with no HTTP requests and no application errors. Desktop session storage is in memory; OS temporary memory is not a secure-erasure guarantee. Desktop packages are unsigned/not notarized. Windows/Linux/Intel-Mac runtime behavior requires testing on those devices.
+
+## 0.3.1 whole-page dragging
+
+The full preview surface is the accessible drag target; the small handle is removed. The drag overlay captures the visible raster and preserves the preview's width and height instead of collapsing to a text tile. Action buttons remain separate from the drag target, and the temporary drag snapshot is released on drop/cancel.
+
+Chrome, Firefox and WebKit tests pass for dragging from the preview center, preserved overlay dimensions, page order, independent selection/rotation buttons and keyboard movement. Touch tests pass for hold-and-drag reordering and ordinary swipe scrolling without starting a drag. No page errors observed.

@@ -2667,3 +2667,10 @@ dialog.quicklook-backdrop::backdrop { background: #0f172a80; }
 
 .mac-download-button { background: #157c35; }
 .mac-download-button:hover { background: #11652b; }
+
+.page-drag-surface { cursor: grab; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.page-drag-surface:active { cursor: grabbing; }
+.page-full-drag-overlay { cursor: grabbing; filter: drop-shadow(0 18px 20px #0f172a33); pointer-events: none; }
+.page-full-drag-overlay .page-paper { display: flex; align-items: center; justify-content: center; border-color: #007aff; background: white; }
+.drag-page-image { width: 100%; height: 100%; object-fit: contain; }
+.drag-page-placeholder { display: grid; place-items: center; height: 100%; width: 100%; color: #475569; }
