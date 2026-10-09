@@ -45,3 +45,14 @@ Chrome, Firefox and WebKit tests pass for dragging from the preview center, pres
 - Browser offline checks passed in Chromium/Firefox; WebKit reload and export passed with the app server stopped.
 - Desktop source build: sample export/preview passed, renderer Node access absent, external network blocked and no HTTP requests observed. Windows/Linux binaries are CI-built, not physically runtime-tested here.
 - These checks are not a WCAG certification or a substitute for observed first-time-user testing.
+
+## 0.5.0 — local English OCR (2026-10-09)
+
+- Image-only synthetic PDF text recognition and blank-page handling passed in Chromium, Firefox and WebKit.
+- Selected-page scope, matching downloaded text, discarded results on panel close, worker termination on cancellation, and 390px layout passed in all three engines.
+- OCR dialog has zero automated axe WCAG A/AA findings in all three engines.
+- Chromium and Firefox OCR passed with network disabled after first-use public recognition files were cached. WebKit OCR and PDF export passed after the app server was stopped and the app reloaded from its offline cache.
+- Desktop source app recognised the sample, saved the extracted text file, and made no external network requests.
+- No PDF upload endpoint, OCR analytics, extracted-text cache, or persisted OCR workspace. Models/scripts are self-hosted. Accuracy testing used synthetic printed English text; this is not a claim of reliable handwriting, table, legal or medical transcription.
+
+- Persistent Vite preview at port 5175 supports local OCR assets and automatic source updates; development OCR sample passed.

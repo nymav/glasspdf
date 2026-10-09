@@ -15,6 +15,7 @@ function Header({
   canRedo,
   hasFiles,
 
+  onOcr,
   onAddFiles,
   onUndo,
   onRedo,
@@ -61,6 +62,7 @@ function Header({
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
+        <button className="mac-title-button" onClick={onOcr} disabled={busy || !hasFiles} title="Read scanned text (OCR)" aria-label="Read scanned text (OCR)">OCR</button>
 
         <button
           type="button"

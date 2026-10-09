@@ -8,6 +8,7 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import { toast } from 'sonner'
 
+import OcrDialog from './components/OcrDialog'
 import Header from './components/Header'
 import UploadDropzone from './components/UploadDropzone'
 import FileList from './components/FileList'
@@ -31,6 +32,7 @@ import WorkspaceGuide from './components/WorkspaceGuide'
 const HISTORY_LIMIT = 25
 
 function App() {
+  const [ocrOpen, setOcrOpen] = useState(false)
   const [outputStale, setOutputStale] = useState(false)
   const [revealPage, setRevealPage] = useState(null)
   const [downloadRequested, setDownloadRequested] = useState(false)
@@ -1336,6 +1338,7 @@ function App() {
           <div className="mac-window">
 
             <Header
+              onOcr={() => setOcrOpen(true)}
               busy={!!operation}
               fileCount={
                 validFileCount
@@ -1608,13 +1611,14 @@ function App() {
           <p>Your PDFs stay on your device. Processing is local; GlassPDF does not upload your documents.</p>
           <details className="mt-1">
             <summary className="cursor-pointer underline underline-offset-4">Privacy details</summary>
-            <p className="mt-2">Documents are held temporarily in memory while you work. Your original files stay unchanged; exports are new PDFs saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files and the public sample, never your documents. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
+            <p className="mt-2">Documents are held temporarily in memory while you work. Your original files stay unchanged; exports are new PDFs saved on your device. GlassPDF has no analytics or saved workspace. Offline support caches only app files, OCR recognition tools and the public sample, never your documents or extracted text. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
           </details>
         </aside>
         <footer className="px-6 pb-6 text-center text-xs text-slate-600">A product of <span className="font-medium text-slate-800">Teyrin</span></footer>
       </main>
 
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement} {markedPages.length} pages selected. {includedPages.length} pages included in output.</p>
+      {ocrOpen && <OcrDialog includedPages={includedPages} selectedPages={markedPages.filter(page => filesById[page.fileId]?.source)} onClose={() => setOcrOpen(false)} />}
       {review && <ExportReview onEditPage={page => { setReview(null); setRevealPage({ id: page.id, at: Date.now() }) }} pages={review.pages} mode={review.mode} filename={outputName} setFilename={setOutputName} onClose={() => setReview(null)} onConfirm={mergeIncludedPages} />}
       {previewFile ? (
         <PdfPreviewModal

@@ -28,7 +28,7 @@ async function createWindow() {
       const bytes = await fs.readFile(file)
       return new Response(bytes, { headers: {
         'Content-Type': mime[path.extname(file)] || 'application/octet-stream',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self' blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'none'",
+        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'none'",
         'X-Content-Type-Options': 'nosniff',
       } })
     } catch { return new Response(null, { status: 404 }) }
@@ -45,7 +45,7 @@ async function createWindow() {
   })
   // Save only when the user explicitly requests Download. The native destination
   // dialog is separate from Chromium's private, in-memory workspace.
-  privateSession.on('will-download', (_event, item) => { item.setSaveDialogOptions({ title: 'Save PDF', filters: [{ name: 'PDF documents', extensions: ['pdf'] }] }) })
+  privateSession.on('will-download', (_event, item) => { item.setSaveDialogOptions({ title: item.getFilename().endsWith('.txt') ? 'Save extracted text' : 'Save PDF', filters: item.getFilename().endsWith('.txt') ? [{ name: 'Text documents', extensions: ['txt'] }] : [{ name: 'PDF documents', extensions: ['pdf'] }] }) })
   await window.loadURL('glasspdf://app/')
 }
 app.whenReady().then(createWindow)

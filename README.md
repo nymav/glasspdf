@@ -8,6 +8,12 @@ GlassPDF lets you combine, preview, rearrange, rotate, duplicate, include, exclu
 
 Review thumbnails in output order before exporting. The mobile workspace includes a persistent review/download action; Help & app contains guidance, installation and version information.
 
+## OCR
+
+Use **OCR** to read English text from scanned pages. Choose selected pages or pages in export, review the results, then copy or download a text file. This does not create a searchable PDF. Results are discarded when the panel closes; original PDFs are unchanged.
+
+Tesseract.js 7.0.0 and its English model are hosted with the app. No cloud OCR service or API key is used. Recognition runs in disposable workers; cancellation terminates them. The browser loads about 7 MB of recognition tools on first use and caches only those public files for offline use. Desktop builds include the tools. OCR accuracy varies with scan quality, handwriting, layout and numbers.
+
 ## Features
 
 - Upload multiple PDF files with drag-and-drop or file picker

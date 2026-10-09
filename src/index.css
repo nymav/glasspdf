@@ -2752,3 +2752,10 @@ body { background: #edf1f5; }
 .text-\[\#007aff\] { color: #135dc9; }
 .document-row-disabled .text-slate-500 { color: #475569; }
 .document-row-disabled .text-rose-600 { color: #9f1239; }
+.ocr-dialog { width: min(760px, calc(100vw - 24px)); }
+.ocr-dialog > p { margin: 12px 0; line-height: 1.6; }
+.ocr-dialog label { display: block; font-weight: 600; margin: 12px 0 6px; }
+.ocr-text { width: 100%; min-height: 260px; resize: vertical; font: 14px/1.6 ui-monospace, monospace; white-space: pre-wrap; }
+.ocr-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 0; }
+.ocr-progress progress { width: 100%; }
+@media (max-width: 480px) { .mac-titlebar { flex-wrap: wrap; } .mac-titlebar > div:last-child { margin-left: auto; } }
