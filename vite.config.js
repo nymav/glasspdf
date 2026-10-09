@@ -14,6 +14,8 @@ const ocrFiles = new Map([
 ])
 
 export default defineConfig(({ mode }) => ({
+  optimizeDeps: { include: ['pdf-lib', 'pdfjs-dist', 'tesseract.js'] },
+  server: { watch: { ignored: ['**/dist/**', '**/dist-desktop/**', '**/desktop-release/**'] } },
   define: { 'import.meta.env.APP_VERSION': JSON.stringify(JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version) },
   base: mode === 'desktop' ? '/' : '/glasspdf/',
   plugins: [react(), tailwindcss(), {
