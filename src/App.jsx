@@ -1722,6 +1722,13 @@ function App() {
 
         </div>
 
+        <aside aria-label="Document privacy" className="mx-auto max-w-3xl px-6 py-5 text-center text-xs leading-6 text-slate-600">
+          <p>PDFs are processed locally in your browser. GlassPDF does not upload or store your documents on a server.</p>
+          <details className="mt-1">
+            <summary className="cursor-pointer underline underline-offset-4">Privacy details</summary>
+            <p className="mt-2">Documents are held temporarily in browser memory while you work. Downloaded PDFs are saved on your device. GlassPDF has no analytics or saved workspace. GitHub Pages records visitor IP addresses for security; your browser or operating system may retain local history, cache, or temporary data.</p>
+          </details>
+        </aside>
       </main>
 
       {previewFile ? (

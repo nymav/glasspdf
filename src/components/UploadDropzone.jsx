@@ -115,7 +115,7 @@ function UploadDropzone({
       </h2>
 
       <p className="mt-1 text-xs text-slate-500">
-        Merge, rearrange and curate documents privately on this device.
+        Combine files, arrange pages and export one PDF.
       </p>
 
       <button
