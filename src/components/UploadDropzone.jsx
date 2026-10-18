@@ -50,8 +50,8 @@ function UploadDropzone({
 
             <p className="text-[12px] font-medium text-slate-700">
               {loading
-                ? 'Reading PDFs…'
-                : 'Drop PDFs here'}
+                ? 'Reading files…'
+                : 'Drop PDFs or images here'}
             </p>
 
             <p className="text-[10px] text-slate-500">
@@ -76,7 +76,7 @@ function UploadDropzone({
           className="mac-secondary-button"
         >
           <FilePlus2 className="h-3.5 w-3.5" />
-          Add PDFs
+          Add files
         </button>
 
       </section>
@@ -111,11 +111,11 @@ function UploadDropzone({
       </div>
 
       <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-900">
-        Drop PDFs here
+        Drop PDFs or images here
       </h2>
 
       <p className="mt-1 text-xs text-slate-500">
-        Combine files, arrange pages and export one PDF.
+        Add PDF, JPG or PNG files. Arrange pages and export one PDF.
       </p>
 
       <button
@@ -128,7 +128,7 @@ function UploadDropzone({
         className="mac-primary-button mt-5"
       >
         <FilePlus2 className="h-4 w-4" />
-        Choose PDFs
+        Choose files
       </button>
 
     </section>
