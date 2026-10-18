@@ -1,3 +1,4 @@
+import { isSupportedImage, imageToPdf } from './lib/imagePdf'
 import {
   useEffect,
   useMemo,
@@ -250,9 +251,9 @@ function App() {
   const addFiles = async inputFiles => {
     if (operationRef.current) return
     const incoming = Array.from(inputFiles)
-    const supported = incoming.filter(file => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))
+    const supported = incoming.filter(file => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf') || isSupportedImage(file))
     const rejected = incoming.length - supported.length
-    if (rejected) toast.error(`${rejected} unsupported file${rejected === 1 ? '' : 's'} skipped. Choose PDF documents; images and Office files are not supported.`)
+    if (rejected) toast.error(`${rejected} unsupported file${rejected === 1 ? '' : 's'} skipped. Choose PDF, JPG or PNG files. Office documents are not supported.`)
     if (!supported.length) return
     const totalBytes = [...files, ...supported].reduce((sum, file) => sum + file.size, 0)
     if ((supported.some(file => file.size > 25 * 1024 * 1024) || totalBytes > 100 * 1024 * 1024) && !window.confirm('Large PDF workspace: previews and export may use substantial device memory. Try smaller files if your browser is slow. Continue?')) return
@@ -261,11 +262,13 @@ function App() {
     const newFiles = [], newPages = [], newUrls = []
     let committed = false
     try {
-      for (const [index, file] of supported.entries()) {
+      for (const [index, incomingFile] of supported.entries()) {
+        let file = incomingFile
         if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
         setOperation({ done: index, total: supported.length, label: `Reading document ${index + 1} of ${supported.length}` })
         const id = makeId()
         try {
+          if (isSupportedImage(file)) file = await imageToPdf(file)
           const { pageCount } = await runPdfJob('parse', { file })
           if (token.cancelled) throw new DOMException('Cancelled', 'AbortError')
           const fileUrl = URL.createObjectURL(file); newUrls.push(fileUrl)
@@ -1321,8 +1324,8 @@ function App() {
 
         multiple
 
-        aria-label="Choose PDF documents"
-        accept="application/pdf,.pdf"
+        aria-label="Choose PDF documents or JPG and PNG images"
+        accept="application/pdf,.pdf,image/jpeg,.jpg,.jpeg,image/png,.png"
 
         className="sr-only"
 
