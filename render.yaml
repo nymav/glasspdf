@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: glasspdf-whatsapp
+    runtime: node
+    plan: free
+    rootDir: services/whatsapp
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: ENABLE_OUTBOUND
+        value: "false"
+      - key: DATABASE_URL
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: META_API_VERSION
+        sync: false
+      - key: OUTBOUND_COST_MICRO
+        sync: false
+      - key: DAILY_BUDGET_MICRO
+        sync: false
