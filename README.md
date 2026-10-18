@@ -219,3 +219,9 @@ npm run desktop:package
 ```
 
 Tags such as `v0.3.0` trigger Mac (Apple Silicon and Intel), Windows x64 and Linux x64 packaging and publish the resulting downloads. Builds are unsigned/not notarized; operating systems may require approval to open them. The Mac Apple Silicon package is tested locally; other-platform build success does not replace testing on those physical devices.
+
+## Free plan and Pro enquiries
+
+The browser edition permits five successful exports per local calendar day and a 25 MB per-input-file limit. Failed/cancelled exports do not consume an action; redownloading an existing output is free. Local OCR and page editing remain free. The allowance is stored in localStorage, not server-verified, and can be reset/bypassed by clearing browser data. Concurrent tabs are not an authoritative transaction system. No paid entitlement or checkout is implemented; Request Pro opens an email enquiry. Do not treat this UI quota as billing security.
+
+For WhatsApp/server processing, enforce verified account allowances server-side, reserve budget before each job, meter actual processing and API costs, release reservations on failure, and verify payment webhooks before granting Pro. Provider credentials, payment setup and backend hosting are still required. Do not charge for unavailable features or claim unlimited paid processing.
