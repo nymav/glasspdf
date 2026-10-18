@@ -14,6 +14,10 @@ Use **OCR** to read English text from scanned pages. Choose selected pages or pa
 
 Tesseract.js 7.0.0 and its English model are hosted with the app. No cloud OCR service or API key is used. Recognition runs in disposable workers; cancellation terminates them. The browser loads about 7 MB of recognition tools on first use and caches only those public files for offline use. Desktop builds include the tools. OCR accuracy varies with scan quality, handwriting, layout and numbers.
 
+## Images to PDF
+
+Add JPG or PNG images with PDFs using the same picker or dropzone. Each image becomes a centred A4 page (landscape for wide images), preserving aspect ratio with 24-point margins. Conversion runs on your device. Original image files remain unchanged. Other image formats and Office conversion are not supported.
+
 ## Features
 
 - Upload multiple PDF files with drag-and-drop or file picker
