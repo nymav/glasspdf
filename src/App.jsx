@@ -1,3 +1,5 @@
+import { FREE_PLAN, readUsage, recordExport, remainingExports } from './lib/usagePolicy'
+import PlanLimitDialog from './components/PlanLimitDialog'
 import { isSupportedImage, imageToPdf } from './lib/imagePdf'
 import {
   useEffect,
@@ -33,6 +35,14 @@ import WorkspaceGuide from './components/WorkspaceGuide'
 const HISTORY_LIMIT = 25
 
 function App() {
+  const [usage, setUsage] = useState(() => readUsage(window.localStorage))
+  const [planLimit, setPlanLimit] = useState('')
+  useEffect(() => {
+    const update = () => setUsage(readUsage(window.localStorage))
+    window.addEventListener('storage', update)
+    const timer = setInterval(update, 60000)
+    return () => { window.removeEventListener('storage', update); clearInterval(timer) }
+  }, [])
   const [ocrOpen, setOcrOpen] = useState(false)
   const [outputStale, setOutputStale] = useState(false)
   const [revealPage, setRevealPage] = useState(null)
@@ -255,6 +265,7 @@ function App() {
     const rejected = incoming.length - supported.length
     if (rejected) toast.error(`${rejected} unsupported file${rejected === 1 ? '' : 's'} skipped. Choose PDF, JPG or PNG files. Office documents are not supported.`)
     if (!supported.length) return
+    if (supported.some(file => file.size > FREE_PLAN.maxFileBytes)) { setPlanLimit('One or more files exceed the Free plan’s 25 MB per-file limit. Choose smaller files or request Pro.'); return }
     const totalBytes = [...files, ...supported].reduce((sum, file) => sum + file.size, 0)
     if ((supported.some(file => file.size > 25 * 1024 * 1024) || totalBytes > 100 * 1024 * 1024) && !window.confirm('Large PDF workspace: previews and export may use substantial device memory. Try smaller files if your browser is slow. Continue?')) return
     const token = { cancelled: false }; operationRef.current = token
@@ -1049,6 +1060,7 @@ function App() {
 
   const requestExport = (mode = 'all') => {
     if (operationRef.current) return
+    if (!remainingExports(readUsage(window.localStorage))) { setPlanLimit('You’ve used today’s 5 free PDF exports. Come back tomorrow or request a higher allowance.'); return }
     const selected = mode === 'selected'
       ? pages.filter(page => page.marked && filesById[page.fileId]?.source)
       : includedPages
@@ -1059,6 +1071,7 @@ function App() {
 
   const mergeIncludedPages = async () => {
     if (!review || operationRef.current) return
+    if (!remainingExports(readUsage(window.localStorage))) { setReview(null); setPlanLimit('Today’s free export allowance has been used.'); return }
     const snapshot = review; setReview(null)
     if (snapshot.version !== workspaceVersionRef.current) { toast.error('Workspace changed. Review the export again.'); return }
     const token = { cancelled: false }; operationRef.current = token
@@ -1070,6 +1083,7 @@ function App() {
       if (token.cancelled || workspaceVersionRef.current !== snapshot.version) throw new DOMException('Cancelled', 'AbortError')
       const mergedUrl = toObjectUrl(mergedBytes, 'application/pdf')
       outputUrlRef.current = mergedUrl; setOutputUrl(mergedUrl); setOutputPageCount(snapshot.pages.length); setMergeState('done'); setOutputStale(false); setDownloadRequested(false); setUnsaved(true)
+      try { setUsage(recordExport(window.localStorage)) } catch { toast.message('Usage could not be saved on this device.') }
       announce(`PDF ready. ${snapshot.pages.length} pages checked in output order.`); toast.success('PDF ready — page order checked')
     } catch (error) {
       setMergeState('idle')
@@ -1339,6 +1353,10 @@ function App() {
         <div className="mx-auto max-w-[1740px]">
 
           <div className="mac-window">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-2 text-xs text-slate-600" aria-label="Current plan">
+              <span><strong>Free plan</strong> · {remainingExports(usage)} of 5 exports remaining today · 25 MB per file</span>
+              <button className="underline underline-offset-2" onClick={() => setPlanLimit('Your current allowance is shown above. Need more exports or larger files?')}>Pro options</button>
+            </div>
 
             <Header
               onOcr={() => setOcrOpen(true)}
@@ -1621,6 +1639,7 @@ function App() {
       </main>
 
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement} {markedPages.length} pages selected. {includedPages.length} pages included in output.</p>
+      {planLimit && <PlanLimitDialog reason={planLimit} onClose={() => setPlanLimit('')} />}
       {ocrOpen && <OcrDialog includedPages={includedPages} selectedPages={markedPages.filter(page => filesById[page.fileId]?.source)} onClose={() => setOcrOpen(false)} />}
       {review && <ExportReview onEditPage={page => { setReview(null); setRevealPage({ id: page.id, at: Date.now() }) }} pages={review.pages} mode={review.mode} filename={outputName} setFilename={setOutputName} onClose={() => setReview(null)} onConfirm={mergeIncludedPages} />}
       {previewFile ? (
